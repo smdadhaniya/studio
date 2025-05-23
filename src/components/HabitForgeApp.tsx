@@ -8,8 +8,7 @@ import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
 import { getTodayDateString, parseDate } from '@/lib/dateUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
-import { HabitTable } from '@/components/habit/HabitTable'; // Updated import
-import { XPDisplay } from '@/components/user/XPDisplay';
+import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -207,17 +206,9 @@ export default function HabitForgeApp() {
         </div>
       </header>
 
-      {/* Combined Header for XP and Badges */}
-      <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground"> {/* Removed shadow-md */}
+      {/* Combined Header for Badges */}
+      <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-x-6 gap-y-4">
-          <XPDisplay
-            xp={userProfile.xp}
-            level={level}
-            progressToNextLevel={progressToNextLevel}
-            currentLevelXpDisplay={currentLevelXp}
-            nextLevelXpThresholdDisplay={nextLevelXp}
-          />
-          <Separator orientation="vertical" className="hidden md:block h-auto self-stretch bg-border/50" />
           <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
         </div>
       </div>
