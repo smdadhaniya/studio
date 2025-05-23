@@ -24,9 +24,13 @@ export function XPDisplay({ xp, level, progressToNextLevel, currentLevelXpDispla
       </div> 
       */}
       <Progress value={progressToNextLevel} className="w-full h-2.5 mb-1 [&>div]:bg-primary" />
+      {/* The following div displaying currentLevelXpDisplay / nextLevelXpThresholdDisplay XP has been removed */}
+      {/*
       <div className="text-xs text-muted-foreground flex justify-end items-center">
         <span>{currentLevelXpDisplay.toLocaleString()} / {nextLevelXpThresholdDisplay === Infinity ? 'MAX' : nextLevelXpThresholdDisplay.toLocaleString()} XP</span>
       </div>
+      */}
     </div>
   );
 }
+
