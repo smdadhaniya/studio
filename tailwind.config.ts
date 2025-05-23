@@ -12,22 +12,22 @@ export default {
   theme: {
   	extend: {
       fontFamily: { 
-        sans: ['var(--font-poppins)', ...defaultTheme.fontFamily.sans], // Changed from --font-outfit to --font-poppins
+        sans: ['var(--font-poppins)', ...defaultTheme.fontFamily.sans], 
       },
       fontSize: { 
-        'xs': '13px',
-        'sm': '13px',
-        'base': '13px',
-        'lg': '13px',
-        'xl': '13px',
-        '2xl': '13px',
-        '3xl': '13px',
-        '4xl': '13px',
-        '5xl': '13px',
-        '6xl': '13px',
-        '7xl': '13px',
-        '8xl': '13px',
-        '9xl': '13px',
+        'xs': '12px',
+        'sm': '12px',
+        'base': '12px',
+        'lg': '12px',
+        'xl': '12px',
+        '2xl': '12px',
+        '3xl': '12px',
+        '4xl': '12px',
+        '5xl': '12px',
+        '6xl': '12px',
+        '7xl': '12px',
+        '8xl': '12px',
+        '9xl': '12px',
       },
   		colors: {
   			background: 'hsl(var(--background))',

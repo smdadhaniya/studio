@@ -33,8 +33,8 @@ function HabitRow({
   }, [habitDailyProgress]);
 
   return (
-    <tr className="group hover:bg-muted/10 transition-colors border-b border-border">
-      <td className="p-2 border-r border-border text-sm text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[150px] max-w-[200px] truncate" title={habit.title}>
+    <tr className="group hover:bg-muted/10 transition-colors border-b">
+      <td className="p-2 border-r text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[120px] max-w-[160px] truncate" title={habit.title}>
         {habit.title}
       </td>
       {daysInMonth.map(day => {
@@ -73,7 +73,7 @@ function HabitRow({
         }
         
         let buttonInnerContent: React.ReactNode = null;
-        const squareBaseClasses = "w-5 h-5 border-2 rounded-sm flex items-center justify-center";
+        const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center"; // Reduced size
 
         if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
             buttonInnerContent = (
@@ -84,14 +84,14 @@ function HabitRow({
         } else { 
             buttonInnerContent = (
                 <div className={cn(squareBaseClasses, checkboxActualBg, checkboxActualBorder)}>
-                    {isCompleted && <Check className={cn("w-4 h-4", contentColor)} strokeWidth={3} />}
+                    {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />} 
                 </div>
             );
         }
 
 
         return (
-          <td key={dateStr} className="p-0 text-center w-10 h-10">
+          <td key={dateStr} className="p-0 text-center w-8 h-8"> {/* Reduced cell size */}
             <button
               onClick={() => {
                   if (isFuture(day) && !isToday(day)) return;
@@ -124,7 +124,7 @@ function HabitRow({
           </td>
         );
       })}
-      <td className="p-2 border-l border-border text-sm text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5]">
+      <td className="p-2 border-l text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px]"> {/* Reduced min-width */}
         <div className="flex gap-1 justify-center">
           <Button onClick={() => onEditHabit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10">
             <Edit3 className="w-4 h-4" />
@@ -163,7 +163,7 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
 
   if (habits.length === 0) {
     return (
-      <div className="text-center py-10 mt-4 border border-dashed border-border rounded-md bg-muted/20">
+      <div className="text-center py-10 mt-4 border border-dashed rounded-md bg-muted/20">
         <p className="text-lg text-muted-foreground">No habits tracked yet.</p>
         <p className="text-sm text-muted-foreground/80">Click "Track New Habit" to get started!</p>
       </div>
@@ -171,8 +171,8 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
   }
 
   return (
-    <div className="w-full overflow-x-auto border border-border rounded-lg bg-card shadow-sm mt-4">
-      <div className="flex justify-between items-center p-3 border-b border-border">
+    <div className="w-full overflow-x-auto border rounded-lg bg-card shadow-sm mt-4">
+      <div className="flex justify-between items-center p-3 border-b">
         <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Previous month" className="w-8 h-8">
           <ChevronLeft className="w-5 h-5" />
         </Button>
@@ -188,13 +188,13 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
         <table className="min-w-full w-max border-collapse">
           <thead>
             <tr className="bg-muted/50">
-              <th className="p-2 border-b border-r border-border text-left text-sm font-medium text-muted-foreground sticky left-0 bg-muted/50 z-20 min-w-[150px] max-w-[200px]">Habit</th>
+              <th className="p-2 border-b border-r text-left font-medium text-muted-foreground sticky left-0 bg-muted/50 z-20 min-w-[120px] max-w-[160px]">Habit</th>
               {daysInMonth.map(day => (
-                <th key={day.toISOString()} className="p-2 border-b border-border text-center text-xs font-medium text-muted-foreground w-10 tabular-nums">
+                <th key={day.toISOString()} className="p-2 border-b text-center font-medium text-muted-foreground w-8 tabular-nums"> {/* Reduced width */}
                   {getDate(day)}
                 </th>
               ))}
-              <th className="p-2 border-b border-l border-border text-center text-sm font-medium text-muted-foreground min-w-[100px] sticky right-0 bg-muted/50 z-20">Actions</th>
+              <th className="p-2 border-b border-l text-center font-medium text-muted-foreground min-w-[80px] sticky right-0 bg-muted/50 z-20">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -215,4 +215,3 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
     </div>
   );
 }
-
