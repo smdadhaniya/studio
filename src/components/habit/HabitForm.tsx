@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Habit, HabitTrackingFormat } from '@/lib/types';
@@ -11,24 +12,15 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ListChecks, Target } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import { HABIT_COLORS } from '@/lib/constants';
+import { HABIT_COLORS, HABIT_ICONS_LIST } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-
-const habitIcons: {name: string, Icon: LucideIcon}[] = [
-    { name: "Check", Icon: Check },
-    { name: "Tasks", Icon: ListChecks },
-    { name: "Target", Icon: Target },
-    // Add more icons as needed
-];
-
+import type { LucideIcon } from 'lucide-react';
 
 const habitFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().max(500).optional(),
   trackingFormat: z.enum(['yes/no', 'measurable'], { required_error: "Tracking format is required" }),
-  icon: z.string().optional(),
+  icon: z.string().optional(), // Icon name as string
   color: z.string().optional(),
 });
 
@@ -36,7 +28,7 @@ export type HabitFormData = z.infer<typeof habitFormSchema>;
 
 interface HabitFormProps {
   onSubmit: (data: HabitFormData) => void;
-  initialData?: Partial<Habit>;
+  initialData?: Partial<Habit> & { icon?: string }; // Ensure initialData.icon is string for form
   onCancel?: () => void;
 }
 
@@ -47,13 +39,13 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
       title: initialData?.title || '',
       description: initialData?.description || '',
       trackingFormat: initialData?.trackingFormat || 'yes/no',
-      icon: typeof initialData?.icon === 'string' ? initialData.icon : (initialData?.icon as LucideIcon)?.displayName || habitIcons[0].name,
+      icon: initialData?.icon || HABIT_ICONS_LIST[0].name, // Expect string icon name
       color: initialData?.color || HABIT_COLORS[0],
     },
   });
 
   const selectedIconName = form.watch('icon');
-  const SelectedIcon = habitIcons.find(i => i.name === selectedIconName)?.Icon || habitIcons[0].Icon;
+  const SelectedIcon = HABIT_ICONS_LIST.find(i => i.name === selectedIconName)?.Icon || HABIT_ICONS_LIST[0].Icon;
 
 
   return (
@@ -66,7 +58,7 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Morning Run" {...field} />
+                <Input placeholder="e.g., Morning Run" {...field} className="text-base"/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -129,13 +121,13 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
                   <FormControl>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
-                        <SelectedIcon className="w-4 h-4" />
+                        {SelectedIcon && <SelectedIcon className="w-4 h-4" />}
                         <SelectValue placeholder="Select an icon" />
                       </div>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {habitIcons.map(({ name, Icon }) => (
+                    {HABIT_ICONS_LIST.map(({ name, Icon }) => (
                       <SelectItem key={name} value={name}>
                         <div className="flex items-center gap-2">
                           <Icon className="w-4 h-4" />
@@ -167,7 +159,7 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
                       <SelectItem key={colorClass} value={colorClass}>
                         <div className="flex items-center gap-2">
                           <div className={cn("w-4 h-4 rounded-full border", colorClass)}></div>
-                          <span>{colorClass.split('-')[1]}</span>
+                          <span>{colorClass.split('-')[1] || colorClass}</span>
                         </div>
                       </SelectItem>
                     ))}

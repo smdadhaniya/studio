@@ -1,13 +1,13 @@
 
 "use client";
 
-import type { Habit, HabitProgress, UserProfile, Badge as BadgeType } from '@/lib/types';
+import type { Habit, HabitProgress, UserProfile, PresetHabitFormData } from '@/lib/types';
 import type { HabitFormData } from '@/components/habit/HabitForm';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
-import { getTodayDateString, parseDate } from '@/lib/dateUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
+import { SetupModal } from '@/components/user/SetupModal'; // Import SetupModal
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { Button } from '@/components/ui/button';
@@ -15,17 +15,9 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, Settings, BellRing, Flame, CheckCircle, ListChecks, Target } from 'lucide-react';
-import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, DEFAULT_USER_NAME } from '@/lib/constants';
+import { PlusCircle, BellRing, Flame } from 'lucide-react';
+import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import type { LucideIcon } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-
-const habitIconsList: { name: string, Icon: LucideIcon }[] = [
-    { name: "Check", Icon: CheckCircle },
-    { name: "Tasks", Icon: ListChecks },
-    { name: "Target", Icon: Target },
-];
-
 
 const HABITS_KEY = 'habitForge_habits';
 const PROGRESS_KEY = 'habitForge_progress';
@@ -37,16 +29,25 @@ export default function HabitForgeApp() {
   const [userProfile, setUserProfile] = useState<UserProfile>(getInitialUserProfile());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false); // State for setup modal
 
   const { requestPermission, showNotification, permission } = useNotifications();
 
   useEffect(() => {
-    setHabits(loadState<Habit[]>(HABITS_KEY, []));
-    setAllProgress(loadState<HabitProgress>(PROGRESS_KEY, {}));
-    setUserProfile(loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile()));
+    const loadedHabits = loadState<Habit[]>(HABITS_KEY, []);
+    const loadedProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
+    const loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
+    
+    setHabits(loadedHabits);
+    setAllProgress(loadedProgress);
+    setUserProfile(loadedProfile);
+
+    // Show setup modal if not completed
+    if (!loadedProfile.hasCompletedSetup) {
+      setIsSetupModalOpen(true);
+    }
     
     if (Notification.permission === 'default') {
-        // Maybe prompt after a small delay or a user interaction
         // requestPermission(); 
     }
   }, [requestPermission]);
@@ -55,14 +56,34 @@ export default function HabitForgeApp() {
   useEffect(() => { saveState(PROGRESS_KEY, allProgress); }, [allProgress]);
   useEffect(() => { saveState(USER_PROFILE_KEY, userProfile); }, [userProfile]);
 
+  const handleSetupSubmit = (name: string, selectedPresetHabits: PresetHabitFormData[]) => {
+    setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
+    
+    const newHabitsFromPresets: Habit[] = selectedPresetHabits.map((preset, index) => {
+      const iconEntry = HABIT_ICONS_LIST.find(icon => icon.name === preset.icon);
+      return {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        title: preset.title,
+        description: preset.description,
+        trackingFormat: preset.trackingFormat,
+        icon: iconEntry ? iconEntry.Icon : Flame,
+        color: HABIT_COLORS[(habits.length + index) % HABIT_COLORS.length], // Distribute colors
+      };
+    });
+
+    setHabits(prev => [...prev, ...newHabitsFromPresets]);
+    toast({ title: "Welcome, " + name + "!", description: "Your Habit Track is ready." });
+  };
+
   const handleHabitFormSubmit = (data: HabitFormData) => {
-    const habitIconEntry = habitIconsList.find(icon => icon.name === data.icon);
+    const habitIconEntry = HABIT_ICONS_LIST.find(icon => icon.name === data.icon);
     const newHabit: Habit = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       ...data,
-      icon: habitIconEntry ? habitIconEntry.Icon : Flame, // Default to Flame if not found
-      color: data.color || HABIT_COLORS[Math.floor(Math.random() * HABIT_COLORS.length)],
+      icon: habitIconEntry ? habitIconEntry.Icon : Flame,
+      color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
     setIsModalOpen(false);
@@ -71,7 +92,7 @@ export default function HabitForgeApp() {
   };
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
-     const habitIconEntry = habitIconsList.find(icon => icon.name === data.icon);
+     const habitIconEntry = HABIT_ICONS_LIST.find(icon => icon.name === data.icon);
      setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...data, icon: habitIconEntry ? habitIconEntry.Icon : h.icon, color: data.color || h.color } : h));
      setIsModalOpen(false);
      setEditingHabit(null);
@@ -79,7 +100,9 @@ export default function HabitForgeApp() {
   };
   
   const handleEditHabit = (habit: Habit) => {
-    const iconName = typeof habit.icon === 'function' ? (habit.icon as LucideIcon)?.displayName || habitIconsList[0].name : habitIconsList[0].name;
+    const iconName = typeof habit.icon === 'function' 
+        ? HABIT_ICONS_LIST.find(item => item.Icon === habit.icon)?.name || HABIT_ICONS_LIST[0].name
+        : typeof habit.icon === 'string' ? habit.icon : HABIT_ICONS_LIST[0].name;
     setEditingHabit({...habit, icon: iconName});
     setIsModalOpen(true);
   };
@@ -97,7 +120,6 @@ export default function HabitForgeApp() {
     }
   };
 
-
   const handleToggleComplete = async (habitId: string, date: string, value?: number) => {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
@@ -105,7 +127,6 @@ export default function HabitForgeApp() {
     const oldStreak = calculateStreak(habitId, allProgress);
     const wasCompleted = (allProgress[habitId] || []).find(p => p.date === date)?.completed;
 
-    // Update progress
     setAllProgress(prev => {
       const habitProgress = prev[habitId] || [];
       const existingEntryIndex = habitProgress.findIndex(p => p.date === date);
@@ -118,15 +139,29 @@ export default function HabitForgeApp() {
       } else {
         updatedHabitProgress = [...habitProgress, { date, completed: true, value }];
       }
+      // Ensure progress is sorted by date for accurate streak calculation and display
+      updatedHabitProgress.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       return { ...prev, [habitId]: updatedHabitProgress };
     });
     
     const newCompletionStatus = !wasCompleted; 
+    const updatedProgressForStreak = { ...allProgress };
+     // Manually update the specific progress entry for streak calculation before setAllProgress finishes
+    const tempHabitProgress = updatedProgressForStreak[habitId] ? [...updatedProgressForStreak[habitId]] : [];
+    const entryIndex = tempHabitProgress.findIndex(p => p.date === date);
+    if (entryIndex !== -1) {
+        tempHabitProgress[entryIndex] = { ...tempHabitProgress[entryIndex], completed: newCompletionStatus, value: newCompletionStatus ? value : undefined };
+    } else {
+        tempHabitProgress.push({ date, completed: newCompletionStatus, value });
+    }
+    tempHabitProgress.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    updatedProgressForStreak[habitId] = tempHabitProgress;
+
 
     if (newCompletionStatus) { 
       let newXp = userProfile.xp + XP_PER_COMPLETION;
       const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
-        {...userProfile, xp: newXp}, habits, {...allProgress, [habitId]: [...(allProgress[habitId] || []), { date, completed: true, value }]} 
+        {...userProfile, xp: newXp}, habits, updatedProgressForStreak
       );
       
       const finalXp = profileWithBadges.xp;
@@ -142,7 +177,7 @@ export default function HabitForgeApp() {
         });
       }
       
-      const newStreak = calculateStreak(habitId, {...allProgress, [habitId]: [...(allProgress[habitId] || []), { date, completed: true, value }]});
+      const newStreak = calculateStreak(habitId, updatedProgressForStreak);
       const milestoneReached = newBadges.length > 0 || (newStreak > 0 && newStreak % 5 === 0) || (finalLevel > userProfile.level);
 
       if (milestoneReached) {
@@ -162,7 +197,7 @@ export default function HabitForgeApp() {
       }
 
     } else { 
-      const newStreak = calculateStreak(habitId, {...allProgress, [habitId]: (allProgress[habitId] || []).map(p => p.date === date ? {...p, completed: false} : p) }); 
+      const newStreak = calculateStreak(habitId, updatedProgressForStreak); 
       if (oldStreak > 0 && newStreak < oldStreak) { 
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
@@ -179,14 +214,20 @@ export default function HabitForgeApp() {
     }
   };
 
-  const { level, progressToNextLevel, currentLevelXp, nextLevelXp } = useMemo(() => {
-    const {level: l, progressToNextLevel: p, currentLevelXp: clXp, nextLevelXp: nlXp} = calculateLevel(userProfile.xp);
-    return {level:l, progressToNextLevel:p, currentLevelXp:clXp, nextLevelXp:nlXp};
-  }, [userProfile.xp]);
-
   const unlockedBadges = useMemo(() => {
     return BADGES.filter(b => userProfile.unlockedBadgeIds.includes(b.id));
   }, [userProfile.unlockedBadgeIds]);
+
+  // If setup is not complete, render only the setup modal or a loading state
+  if (!userProfile.hasCompletedSetup) {
+    return (
+      <SetupModal
+        open={isSetupModalOpen}
+        onOpenChange={setIsSetupModalOpen}
+        onSubmit={handleSetupSubmit}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -206,8 +247,12 @@ export default function HabitForgeApp() {
         </div>
       </header>
 
-      {/* Combined Header for Badges */}
       <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground">
+        {userProfile.userName && userProfile.userName !== DEFAULT_USER_NAME && (
+          <h2 className="text-[25px] font-bold mb-3 text-center md:text-left text-foreground">
+            {userProfile.userName}'s Progress
+          </h2>
+        )}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-x-6 gap-y-4">
           <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
         </div>
@@ -219,6 +264,12 @@ export default function HabitForgeApp() {
         onHabitCreate={handleHabitFormSubmit}
         editingHabit={editingHabit}
         onHabitUpdate={handleHabitUpdate}
+      />
+
+      <SetupModal
+        open={isSetupModalOpen}
+        onOpenChange={setIsSetupModalOpen}
+        onSubmit={handleSetupSubmit}
       />
 
       <main>

@@ -1,3 +1,4 @@
+
 import type { Habit, DailyProgress, UserProfile, Badge, HabitProgress } from './types';
 import { LEVEL_THRESHOLDS, BADGES, XP_PER_COMPLETION, DEFAULT_USER_NAME } from './constants';
 import { parseDate, getTodayDateString } from './dateUtils';
@@ -7,7 +8,6 @@ export function calculateStreak(habitId: string, allProgress: HabitProgress): nu
   const progress = allProgress[habitId] || [];
   if (!progress.length) return 0;
 
-  // Sort progress by date descending to start from the most recent
   const sortedProgress = [...progress]
     .map(p => ({ ...p, dateObj: parseDate(p.date) }))
     .sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime());
@@ -15,39 +15,30 @@ export function calculateStreak(habitId: string, allProgress: HabitProgress): nu
   let streak = 0;
   let currentDate = parseDate(getTodayDateString());
 
-  // Check if today is completed
   const todayEntry = sortedProgress.find(p => isEqual(p.dateObj, currentDate));
   if (todayEntry?.completed) {
     streak = 1;
     currentDate = subDays(currentDate, 1);
   } else {
-    // If today is not completed, or no entry for today, check yesterday
     currentDate = subDays(currentDate, 1);
     const yesterdayEntry = sortedProgress.find(p => isEqual(p.dateObj, currentDate));
-    if(!yesterdayEntry?.completed) return 0; // If yesterday also not completed, streak is 0
-    // If yesterday was completed, continue checking from yesterday
-  }
-
-
-  for (const entry of sortedProgress) {
-    if (entry.completed && isEqual(entry.dateObj, currentDate)) {
-      if(streak === 0) streak = 1; // Start streak if it's the first matched day (e.g. yesterday)
-      else if (isEqual(entry.dateObj, subDays(parseDate(sortedProgress[streak-1]?.date),1))) streak++; // Check if it's consecutive
-      currentDate = subDays(currentDate, 1);
-    } else if (isBefore(entry.dateObj, currentDate)) {
-      // If we find an older entry but it's not for the `currentDate` we are checking, the streak is broken
-      break;
+    if(!yesterdayEntry?.completed && !todayEntry?.completed && progress.some(p => p.completed && isEqual(p.dateObj, subDays(parseDate(getTodayDateString()),1)))) {
+      // if today not complete AND yesterday not complete, but there was a completion yesterday (edge case for when today is toggled off after being on)
+       // then streak is 0, unless it's the first day and there's an entry for it
+    } else if (!yesterdayEntry?.completed && !todayEntry?.completed && sortedProgress.length > 0) {
+      // if neither today nor yesterday are complete, and there is progress history, streak is 0
+      // unless it's the very first day and today has an entry (handled above)
+       if (! (isEqual(sortedProgress[0].dateObj, parseDate(getTodayDateString())) && sortedProgress.length === 1) ) return 0;
     }
+
   }
-  
-  // Refined streak calculation logic
-  // Start from the most recent completed day or yesterday if today is not completed
+
   let currentStreak = 0;
   let expectedDate = parseDate(getTodayDateString());
   const todayProgress = sortedProgress.find(p => isEqual(p.dateObj, expectedDate));
 
   if (!todayProgress || !todayProgress.completed) {
-    expectedDate = subDays(expectedDate, 1); // Start checking from yesterday if today is not done
+    expectedDate = subDays(expectedDate, 1); 
   }
   
   for (let i = 0; i < sortedProgress.length; i++) {
@@ -56,13 +47,10 @@ export function calculateStreak(habitId: string, allProgress: HabitProgress): nu
       currentStreak++;
       expectedDate = subDays(expectedDate, 1);
     } else if (pDay.completed && isBefore(pDay.dateObj, expectedDate)) {
-      // A completed day is found, but it's not the one we expect for a continuous streak
       break; 
     } else if (!pDay.completed && isEqual(pDay.dateObj, expectedDate)){
-      // An uncompleted day found where we expected a completed one.
       break;
     }
-    // If pDay.dateObj is after expectedDate, it means we skipped some days, keep looking
   }
 
   return currentStreak;
@@ -78,10 +66,10 @@ export function calculateLevel(xp: number): { level: number, progressToNextLevel
       break;
     }
   }
-  level = Math.min(level, LEVEL_THRESHOLDS.length); // Cap level at max defined
+  level = Math.min(level, LEVEL_THRESHOLDS.length); 
 
   const currentLevelXp = LEVEL_THRESHOLDS[level - 1] || 0;
-  const nextLevelXp = LEVEL_THRESHOLDS[level] || Infinity; // XP for next level (e.g., level 2 needs THRESHOLDS[1])
+  const nextLevelXp = LEVEL_THRESHOLDS[level] || Infinity; 
   
   const xpInCurrentLevel = xp - currentLevelXp;
   const xpForNextLevel = nextLevelXp - currentLevelXp;
@@ -101,7 +89,7 @@ export function checkAndAwardBadges(
 
   for (const badge of BADGES) {
     if (userProfile.unlockedBadgeIds.includes(badge.id)) {
-      continue; // Already unlocked
+      continue; 
     }
 
     let eligible = false;
@@ -118,17 +106,21 @@ export function checkAndAwardBadges(
         }
       }
     } else if (badge.milestoneType === 'totalCompletions') {
-      // For 'first_completion', check across all habits
       if (badge.id === 'first_completion') {
          const anyCompletion = Object.values(allProgress).some(habitProg => habitProg.some(p => p.completed));
          if(anyCompletion && badge.milestoneValue === 1) eligible = true;
-      } else {
-        // For other totalCompletions badges, check per habit
+      } else if (badge.id === 'power_user'){ // This badge counts total completions across ALL habits
+        const totalCompletionsAllHabits = Object.values(allProgress).reduce((acc, habitProg) => acc + habitProg.filter(p => p.completed).length, 0);
+        if (totalCompletionsAllHabits >= badge.milestoneValue) {
+          eligible = true;
+        }
+      }
+      else { // For other totalCompletions badges (like 'Dedicated Start', 'Committed', 'Perfect Week'), check per single habit
         for (const habit of habits) {
           const habitCompletions = (allProgress[habit.id] || []).filter(p => p.completed).length;
           if (habitCompletions >= badge.milestoneValue) {
             eligible = true;
-            break;
+            break; 
           }
         }
       }
@@ -148,7 +140,6 @@ export function checkAndAwardBadges(
     unlockedBadgeIds: [...userProfile.unlockedBadgeIds, ...newBadges.map(b => b.id)],
   };
 
-  // Recalculate level if XP changed
   if (newXpFromBadges > 0) {
     const { level } = calculateLevel(updatedProfile.xp);
     updatedProfile.level = level;
@@ -163,5 +154,6 @@ export function getInitialUserProfile(): UserProfile {
     level: 1,
     unlockedBadgeIds: [],
     userName: DEFAULT_USER_NAME,
+    hasCompletedSetup: false, // Initialize as false
   };
 }

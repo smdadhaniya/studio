@@ -1,3 +1,4 @@
+
 import type { LucideIcon } from 'lucide-react';
 
 export type HabitTrackingFormat = 'yes/no' | 'measurable';
@@ -26,15 +27,24 @@ export interface UserProfile {
   xp: number;
   level: number;
   unlockedBadgeIds: string[];
-  userName: string; // Added userName as it's used by AI
+  userName: string;
+  hasCompletedSetup?: boolean; // Added to track initial setup
 }
 
 export interface Badge {
   id: string;
   name: string;
   description: string;
-  icon: LucideIcon | string; // Allow string for custom SVG paths if needed, or LucideIcon
+  icon: LucideIcon | string;
   milestoneType: 'streak' | 'totalCompletions' | 'level';
   milestoneValue: number;
-  xpReward?: number; // Optional XP reward for unlocking badge
+  xpReward?: number;
+}
+
+// For preset habits in the setup modal
+export interface PresetHabitFormData {
+  title: string;
+  description: string;
+  trackingFormat: HabitTrackingFormat;
+  icon: string; // Icon name (string)
 }
