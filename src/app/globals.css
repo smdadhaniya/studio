@@ -5,7 +5,7 @@
 
 body {
   font-family: var(--font-outfit), Arial, Helvetica, sans-serif; /* Added var(--font-outfit) */
-  @apply text-sm; /* Default text size to 14px (sm will be mapped to 14px in tailwind.config) */
+  @apply text-[13px]; /* Default text size to 13px */
 }
 
 @layer base {
