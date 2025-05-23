@@ -3,9 +3,10 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google'; // Changed from Outfit to Poppins
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { SidebarProvider, SidebarInset, Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Flame } from 'lucide-react';
+// Removed Sidebar imports as they are not used
+// import { SidebarProvider, SidebarInset, Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
+// import { Button } from '@/components/ui/button';
+// import { Flame } from 'lucide-react';
 
 const poppins = Poppins({ // Changed from outfit to poppins
   variable: '--font-poppins', // Changed variable name
@@ -26,19 +27,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className={`${poppins.variable} antialiased`} suppressHydrationWarning={true}> {/* Used poppins.variable */}
-        <SidebarProvider defaultOpen={false}>
-          <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
-            <SidebarHeader className="p-2 flex items-center justify-between">
-            </SidebarHeader>
-            <SidebarContent>
-            </SidebarContent>
-            <SidebarFooter>
-            </SidebarFooter>
-          </Sidebar>
-          <SidebarInset>
+        {/* Removed SidebarProvider and Sidebar structure */}
+        <div className="flex flex-col min-h-screen">
+          {/* The main content area */}
+          <main className="flex-grow">
             {children}
-          </SidebarInset>
-        </SidebarProvider>
+          </main>
+        </div>
         <Toaster />
       </body>
     </html>
