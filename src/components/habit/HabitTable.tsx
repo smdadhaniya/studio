@@ -32,11 +32,11 @@ function HabitRow({
     return map;
   }, [habitDailyProgress]);
 
-  const IconComponent = habit.icon ? HABIT_LUCIDE_ICONS_LIST.find(item => item.name === habit.icon)?.icon : null;
+  const IconComponent = habit.icon && typeof habit.icon === 'string' ? HABIT_LUCIDE_ICONS_LIST.find(item => item.name === habit.icon)?.icon : null;
 
   return (
     <tr className="group hover:bg-muted/10 transition-colors border-b">
-      <td className="p-2 border-r text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[120px] max-w-[160px] truncate" title={habit.title}>
+      <td className="p-2 text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[120px] max-w-[160px] truncate border-r" title={habit.title}>
         <div className="flex items-center gap-2">
           {IconComponent && <IconComponent className="w-4 h-4 text-muted-foreground" />}
           <span>{habit.title}</span>
@@ -49,14 +49,14 @@ function HabitRow({
 
         let checkboxSquareBg = '';
         let checkboxSquareBorder = '';
-        let contentColor = ''; // For checkmark or measurable value text
+        let contentColor = ''; 
 
         if (isToday(day)) {
             if (isCompleted) {
                 checkboxSquareBg = 'bg-green-500';
                 checkboxSquareBorder = 'border-green-600';
                 contentColor = 'text-white';
-            } else { // Incomplete Today
+            } else { 
                 checkboxSquareBg = 'bg-green-100';
                 checkboxSquareBorder = 'border-green-500';
                 contentColor = 'text-green-700';
@@ -66,12 +66,12 @@ function HabitRow({
                 checkboxSquareBg = 'bg-slate-600';
                 checkboxSquareBorder = 'border-slate-700';
                 contentColor = 'text-white';
-            } else { // Missed Past
+            } else { 
                 checkboxSquareBg = 'bg-red-200';
                 checkboxSquareBorder = 'border-red-500';
                 contentColor = 'text-red-700';
             }
-        } else { // Future days
+        } else { 
             checkboxSquareBg = 'bg-gray-100';
             checkboxSquareBorder = 'border-gray-400';
             contentColor = 'text-gray-500';
@@ -129,7 +129,7 @@ function HabitRow({
           </td>
         );
       })}
-      <td className="p-2 border-l text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px]">
+      <td className="p-2 text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px] border-l">
         <div className="flex gap-1 justify-center">
           <Button onClick={() => onEditHabit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10">
             <Edit3 className="w-4 h-4" />
@@ -149,22 +149,26 @@ function HabitRow({
 interface HabitTableProps {
   habits: Habit[];
   allProgress: HabitProgress;
+  displayedMonth: Date; // Changed from local state to prop
   onToggleComplete: (habitId: string, date: string, value?: number) => void;
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
 }
 
-export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit, onDeleteHabit }: HabitTableProps) {
-  const [displayedMonth, setDisplayedMonth] = useState(startOfMonth(new Date()));
-
+export function HabitTable({
+  habits,
+  allProgress,
+  displayedMonth, // Use prop
+  onToggleComplete,
+  onEditHabit,
+  onDeleteHabit
+}: HabitTableProps) {
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(displayedMonth);
     const end = endOfMonth(displayedMonth);
     return eachDayOfInterval({ start, end });
   }, [displayedMonth]);
 
-  const goToPreviousMonth = () => setDisplayedMonth(prev => subMonths(prev, 1));
-  const goToNextMonth = () => setDisplayedMonth(prev => addMonths(prev, 1));
 
   if (habits.length === 0) {
     return (
@@ -177,18 +181,7 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
 
   return (
     <div className="w-full overflow-x-auto border rounded-lg bg-card shadow-sm mt-4">
-      <div className="flex justify-between items-center p-3 border-b">
-        <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Previous month" className="w-8 h-8">
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <span className="text-lg font-semibold text-foreground tabular-nums">
-          {format(displayedMonth, "MMMM yyyy")}
-        </span>
-        <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Next month" className="w-8 h-8">
-          <ChevronRight className="w-5 h-5" />
-        </Button>
-      </div>
-
+      {/* Month navigation moved to HabitForgeApp */}
       <div className="overflow-x-auto">
         <table className="min-w-full w-max border-collapse">
           <thead>
@@ -220,3 +213,5 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
     </div>
   );
 }
+
+    

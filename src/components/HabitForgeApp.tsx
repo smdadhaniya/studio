@@ -15,8 +15,9 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
+import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
 const HABITS_KEY = 'habitForge_habits';
 const PROGRESS_KEY = 'habitForge_progress';
@@ -30,6 +31,7 @@ export default function HabitForgeApp() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [displayedMonth, setDisplayedMonth] = useState(startOfMonth(new Date()));
 
   const { requestPermission, showNotification, permission } = useNotifications();
 
@@ -37,9 +39,8 @@ export default function HabitForgeApp() {
     const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
-      // Ensure iconName is a valid Lucide icon name if it exists
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = undefined; // Reset if old/invalid icon name
+        iconName = HABIT_LUCIDE_ICONS_LIST[0]?.name || undefined; // Fallback to first in list or undefined
       }
       return {
         ...h,
@@ -80,7 +81,7 @@ export default function HabitForgeApp() {
         title: preset.title,
         description: preset.description,
         trackingFormat: preset.trackingFormat,
-        icon: preset.icon, // This is already icon name (string)
+        icon: preset.icon,
         color: HABIT_COLORS[(habits.length + index) % HABIT_COLORS.length],
       };
     });
@@ -95,7 +96,7 @@ export default function HabitForgeApp() {
     const newHabit: Habit = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
-      ...data, // data.icon is already icon name (string)
+      ...data,
       color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
@@ -225,6 +226,9 @@ export default function HabitForgeApp() {
     return BADGES.filter(b => userProfile.unlockedBadgeIds.includes(b.id));
   }, [userProfile.unlockedBadgeIds]);
 
+  const goToPreviousMonth = () => setDisplayedMonth(prev => subMonths(prev, 1));
+  const goToNextMonth = () => setDisplayedMonth(prev => addMonths(prev, 1));
+
   if (!userProfile.hasCompletedSetup && !isEditProfileModalOpen) {
     return (
       <SetupModal
@@ -269,8 +273,19 @@ export default function HabitForgeApp() {
             {userProfile.userName}'s Progress
           </h2>
         )}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-x-6 gap-y-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-x-6 gap-y-4">
           <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
+          <div className="flex items-center justify-center md:justify-end gap-2 mt-4 md:mt-0">
+            <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Previous month" className="w-8 h-8">
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <span className="text-lg font-semibold text-foreground tabular-nums min-w-[120px] text-center">
+              {format(displayedMonth, "MMMM yyyy")}
+            </span>
+            <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Next month" className="w-8 h-8">
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -294,6 +309,7 @@ export default function HabitForgeApp() {
         <HabitTable
           habits={habits}
           allProgress={allProgress}
+          displayedMonth={displayedMonth}
           onToggleComplete={handleToggleComplete}
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
@@ -303,3 +319,5 @@ export default function HabitForgeApp() {
     </div>
   );
 }
+
+    
