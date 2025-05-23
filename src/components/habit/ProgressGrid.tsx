@@ -8,11 +8,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { parseDate } from '@/lib/dateUtils'; // Keep parseDate for tooltip formatting
+import { parseDate } from '@/lib/dateUtils';
 
 interface ProgressGridProps {
   progress: DailyProgress[];
-  habitColor?: string; // Main color for completed cells
+  habitColor?: string; 
 }
 
 export function ProgressGrid({ progress, habitColor = 'bg-primary' }: ProgressGridProps) {
@@ -36,11 +36,12 @@ export function ProgressGrid({ progress, habitColor = 'bg-primary' }: ProgressGr
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-2 px-1">
+      <div className="flex justify-between items-center mb-2 px-1 border-b pb-2"> {/* Added border-b and pb-2 for tabular header look */}
         <Button variant="ghost" size="icon" onClick={goToPreviousMonth} aria-label="Previous month">
           <ChevronLeft className="w-5 h-5" />
         </Button>
-        <span className="text-sm font-medium text-muted-foreground">
+        {/* Changed text-sm to text-lg (18px) for month display */}
+        <span className="text-lg font-medium text-muted-foreground"> 
           {format(displayedMonth, "MMMM yyyy")}
         </span>
         <Button variant="ghost" size="icon" onClick={goToNextMonth} aria-label="Next month">
@@ -48,11 +49,11 @@ export function ProgressGrid({ progress, habitColor = 'bg-primary' }: ProgressGr
         </Button>
       </div>
       <TooltipProvider delayDuration={100}>
-        <div className="flex overflow-x-auto space-x-1 p-1 bg-card-foreground/5 rounded-md min-h-[3.5rem] items-center"> {/* min-h to maintain some height */}
+        <div className="flex overflow-x-auto space-x-1 p-1 bg-card-foreground/5 rounded-md min-h-[3.5rem] items-center">
           {daysInMonth.map(dateStr => {
             const dayProgress = progressMap.get(dateStr);
             const isCompleted = dayProgress?.completed === true;
-            const cellDate = parseDate(dateStr); // parseDate expects 'yyyy-MM-dd'
+            const cellDate = parseDate(dateStr); 
             
             let tooltipContent = format(cellDate, "MMM d");
             if (dayProgress) {
@@ -61,8 +62,6 @@ export function ProgressGrid({ progress, habitColor = 'bg-primary' }: ProgressGr
                 tooltipContent += ` (${dayProgress.value})`;
               }
             } else {
-              // For days not in progressMap, it means no data.
-              // Check if the date is in the past or future relative to today for more precise "No data" vs "Not yet tracked"
               tooltipContent += ": No data";
             }
 
@@ -71,14 +70,14 @@ export function ProgressGrid({ progress, habitColor = 'bg-primary' }: ProgressGr
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      "w-6 h-7 flex-shrink-0 rounded-sm border border-border/20 flex items-center justify-center", // Adjusted size and added flex-shrink-0
+                      "w-6 h-7 flex-shrink-0 rounded-sm border border-border/20 flex items-center justify-center", 
                       isCompleted ? habitColor : 'bg-muted/30',
-                      "hover:ring-2 hover:ring-offset-1 hover:ring-ring ring-offset-background cursor-default" // Added cursor-default
+                      "hover:ring-2 hover:ring-offset-1 hover:ring-ring ring-offset-background cursor-default"
                     )}
                     aria-label={tooltipContent}
                   />
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="text-sm"> {/* Ensure tooltip content is 14px */}
                   <p>{tooltipContent}</p>
                 </TooltipContent>
               </Tooltip>

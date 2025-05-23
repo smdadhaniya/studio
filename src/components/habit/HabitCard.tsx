@@ -58,31 +58,31 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
       <div className="flex-shrink-0 sm:w-auto sm:max-w-[20%] md:max-w-[25%] space-y-1">
         <div className="flex items-center gap-2">
           <IconComponent className={cn("w-5 h-5 sm:w-6 sm:h-6", iconColorClass)} />
-          <h3 className="font-semibold text-base sm:text-lg truncate" title={habit.title}>{habit.title}</h3>
+          <h3 className="font-semibold text-lg truncate" title={habit.title}>{habit.title}</h3> {/* text-base sm:text-lg to text-lg (18px) */}
         </div>
         {habit.description && (
-          <p className="text-xs text-muted-foreground hidden md:block truncate" title={habit.description}>
+          <p className="text-sm text-muted-foreground hidden md:block truncate" title={habit.description}> {/* text-xs to text-sm (14px) */}
             {habit.description}
           </p>
         )}
         <div className="flex sm:hidden gap-1 pt-1"> {/* Mobile Edit/Delete */}
-            <Button onClick={() => onEdit(habit)} variant="ghost" size="sm" className="text-xs p-1 h-auto">
+            <Button onClick={() => onEdit(habit)} variant="ghost" size="sm" className="text-sm p-1 h-auto"> {/* text-xs to text-sm (14px) */}
                 <Edit3 className="w-3 h-3 mr-1" /> Edit
             </Button>
-            <Button onClick={() => onDelete(habit.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive text-xs p-1 h-auto">
+            <Button onClick={() => onDelete(habit.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive text-sm p-1 h-auto"> {/* text-xs to text-sm (14px) */}
                 <Trash2 className="w-3 h-3 mr-1" /> Delete
             </Button>
         </div>
       </div>
 
       {/* Middle Section: Progress Grid */}
-      <div className="flex-grow min-w-0"> {/* min-w-0 is important for flex item to shrink */}
+      <div className="flex-grow min-w-0"> 
         <ProgressGrid progress={progress} habitColor={habitBaseColor} />
       </div>
 
       {/* Right Section: Streak, Value Input, Actions */}
       <div className="flex-shrink-0 sm:w-auto sm:max-w-[30%] md:max-w-[25%] flex flex-col items-start sm:items-end gap-2 mt-2 sm:mt-0">
-        <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-muted-foreground">
+        <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground"> {/* text-xs sm:text-sm to text-sm (14px) */}
           <Flame className="w-4 h-4 text-orange-400" />
           <span>{streak} Day Streak</span>
         </div>
@@ -93,22 +93,22 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
             placeholder="Value"
             value={measurableValue}
             onChange={(e) => setMeasurableValue(e.target.value)}
-            className="h-8 text-xs sm:text-sm w-full sm:max-w-[100px]"
+            className="h-8 text-sm w-full sm:max-w-[100px]" /* Ensure text-sm (14px) */
           />
         )}
 
         <div className="flex gap-2 w-full sm:w-auto justify-start sm:justify-end">
           {!isCompletedToday ? (
-            <Button onClick={handleComplete} size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 text-xs flex-grow sm:flex-grow-0">
+            <Button onClick={handleComplete} size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 text-sm flex-grow sm:flex-grow-0"> {/* text-xs to text-sm (14px) */}
               <CheckCircle className="w-3 h-3 mr-1" /> Mark Done
             </Button>
           ) : (
-            <Button onClick={handleComplete} variant="outline" size="sm" className="h-8 text-xs border-green-500 text-green-600 hover:bg-green-50 flex-grow sm:flex-grow-0">
+            <Button onClick={handleComplete} variant="outline" size="sm" className="h-8 text-sm border-green-500 text-green-600 hover:bg-green-50 flex-grow sm:flex-grow-0"> {/* text-xs to text-sm (14px) */}
               <CheckCircle className="w-3 h-3 mr-1 text-green-500" /> Done!
             </Button>
           )}
           {isCompletedToday && (
-             <Button onClick={handleMissed} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-xs flex-grow sm:flex-grow-0">
+             <Button onClick={handleMissed} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-sm flex-grow sm:flex-grow-0"> {/* text-xs to text-sm (14px) */}
                 <XCircle className="w-3 h-3 mr-1" /> Undone
             </Button>
           )}

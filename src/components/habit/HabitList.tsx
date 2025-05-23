@@ -17,6 +17,7 @@ export function HabitList({ habits, allProgress, onToggleComplete, onEditHabit, 
   if (habits.length === 0) {
     return (
       <div className="text-center py-10">
+        {/* text-xl will be mapped to 18px */}
         <p className="text-xl text-muted-foreground">No habits yet. Track your first one!</p>
       </div>
     );

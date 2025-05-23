@@ -1,18 +1,14 @@
+
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Outfit } from 'next/font/google'; // Changed from Geist to Outfit
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { SidebarProvider, SidebarInset, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarFooter } from '@/components/ui/sidebar'; // Assuming Sidebar can be minimal
+import { SidebarProvider, SidebarInset, Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Flame } from 'lucide-react';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const outfit = Outfit({ // Changed from geistSans/geistMono to outfit
+  variable: '--font-outfit', // Changed variable name
   subsets: ['latin'],
 });
 
@@ -28,18 +24,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning={true}>
+      <body className={`${outfit.variable} antialiased`} suppressHydrationWarning={true}> {/* Used outfit.variable */}
         <SidebarProvider defaultOpen={false}>
           <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
-            {/* Minimal Sidebar content, can be expanded later */}
             <SidebarHeader className="p-2 flex items-center justify-between">
-               {/* Placeholder for logo or simple trigger if sidebar is collapsed by default */}
             </SidebarHeader>
             <SidebarContent>
-              {/* Navigation items can go here if needed in the future */}
             </SidebarContent>
             <SidebarFooter>
-              {/* Footer items */}
             </SidebarFooter>
           </Sidebar>
           <SidebarInset>

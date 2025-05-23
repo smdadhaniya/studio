@@ -1,4 +1,6 @@
+
 import type { Config } from "tailwindcss";
+import defaultTheme from 'tailwindcss/defaultTheme'; // Imported defaultTheme
 
 export default {
     darkMode: ["class"],
@@ -9,6 +11,24 @@ export default {
   ],
   theme: {
   	extend: {
+      fontFamily: { // Added Outfit font family
+        sans: ['var(--font-outfit)', ...defaultTheme.fontFamily.sans],
+      },
+      fontSize: { // Added custom font sizes, mapping to 14px and 18px
+        'xs': '14px',
+        'sm': '14px',
+        'base': '14px',
+        'lg': '18px',
+        'xl': '18px',
+        '2xl': '18px',
+        '3xl': '18px',
+        '4xl': '18px',
+        '5xl': '18px',
+        '6xl': '18px',
+        '7xl': '18px',
+        '8xl': '18px',
+        '9xl': '18px',
+      },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

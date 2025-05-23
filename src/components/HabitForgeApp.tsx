@@ -79,7 +79,7 @@ export default function HabitForgeApp() {
   };
   
   const handleEditHabit = (habit: Habit) => {
-    const iconName = typeof habit.icon !== 'function' ? (habit.icon as LucideIcon)?.displayName || habitIconsList[0].name : habit.icon;
+    const iconName = typeof habit.icon === 'function' ? (habit.icon as LucideIcon)?.displayName || habitIconsList[0].name : habitIconsList[0].name;
     setEditingHabit({...habit, icon: iconName});
     setIsModalOpen(true);
   };
@@ -121,20 +121,14 @@ export default function HabitForgeApp() {
       return { ...prev, [habitId]: updatedHabitProgress };
     });
     
-    // Actions after state has potentially updated (useEffect for this or direct call if careful)
-    // For simplicity, direct call, but be mindful of state updates timing for calculations.
-    // It's better to use the 'next state' for calculations if possible.
-    
-    // Perform actions based on the new completion status
-    const newCompletionStatus = !wasCompleted; // This is the status *after* toggle
+    const newCompletionStatus = !wasCompleted; 
 
-    if (newCompletionStatus) { // Just completed
+    if (newCompletionStatus) { 
       let newXp = userProfile.xp + XP_PER_COMPLETION;
       const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
-        {...userProfile, xp: newXp}, habits, {...allProgress, [habitId]: [...(allProgress[habitId] || []), { date, completed: true, value }]} // Pass "future" state
+        {...userProfile, xp: newXp}, habits, {...allProgress, [habitId]: [...(allProgress[habitId] || []), { date, completed: true, value }]} 
       );
       
-      // Update user profile with XP from completion and badges
       const finalXp = profileWithBadges.xp;
       const { level: finalLevel } = calculateLevel(finalXp);
       setUserProfile({...profileWithBadges, level: finalLevel});
@@ -148,7 +142,6 @@ export default function HabitForgeApp() {
         });
       }
       
-      // Check for AI motivational message only on completion, not un-completion
       const newStreak = calculateStreak(habitId, {...allProgress, [habitId]: [...(allProgress[habitId] || []), { date, completed: true, value }]});
       const milestoneReached = newBadges.length > 0 || (newStreak > 0 && newStreak % 5 === 0) || (finalLevel > userProfile.level);
 
@@ -168,9 +161,9 @@ export default function HabitForgeApp() {
         }
       }
 
-    } else { // Just un-completed (marked as missed or undone)
-      const newStreak = calculateStreak(habitId, {...allProgress, [habitId]: (allProgress[habitId] || []).map(p => p.date === date ? {...p, completed: false} : p) }); // Calculate with it missed
-      if (oldStreak > 0 && newStreak < oldStreak) { // Streak was broken
+    } else { 
+      const newStreak = calculateStreak(habitId, {...allProgress, [habitId]: (allProgress[habitId] || []).map(p => p.date === date ? {...p, completed: false} : p) }); 
+      if (oldStreak > 0 && newStreak < oldStreak) { 
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -183,8 +176,6 @@ export default function HabitForgeApp() {
           console.error("Error generating empathetic message:", error);
         }
       }
-       // Optionally revert XP if uncompleting, for now, XP is only additive.
-       // setUserProfile(prev => ({ ...prev, xp: Math.max(0, prev.xp - XP_PER_COMPLETION) }));
     }
   };
 
@@ -200,16 +191,16 @@ export default function HabitForgeApp() {
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-4xl font-bold text-primary flex items-center">
+        <h1 className="text-lg font-bold text-primary flex items-center"> {/* Changed text-4xl to text-lg (18px) */}
             <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Track
         </h1>
         <div className="flex items-center gap-3">
              {permission !== 'granted' && (
-                <Button onClick={requestPermission} variant="outline" size="sm">
+                <Button onClick={requestPermission} variant="outline" size="sm" className="text-sm"> {/* Ensure button text is 14px */}
                     <BellRing className="w-4 h-4 mr-2"/> Enable Notifications
                 </Button>
             )}
-          <Button onClick={() => { setEditingHabit(null); setIsModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Button onClick={() => { setEditingHabit(null); setIsModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm"> {/* Ensure button text is 14px */}
             <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
           </Button>
         </div>

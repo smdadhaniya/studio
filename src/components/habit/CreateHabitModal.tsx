@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -44,7 +45,9 @@ export function CreateHabitModal({
       {triggerButton && <DialogTrigger asChild>{triggerButton}</DialogTrigger>}
       <DialogContent className="sm:max-w-[525px] bg-card text-card-foreground">
         <DialogHeader>
+          {/* DialogTitle uses text-lg (18px) by default via ShadCN config */}
           <DialogTitle>{editingHabit ? 'Edit Habit' : 'Track a New Habit'}</DialogTitle>
+          {/* DialogDescription uses text-sm (14px) by default via ShadCN config */}
           <DialogDescription>
             {editingHabit ? 'Update the details of your habit.' : 'Define your new habit. Stay consistent and track your progress!'}
           </DialogDescription>

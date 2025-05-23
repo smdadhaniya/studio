@@ -1,9 +1,11 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), Arial, Helvetica, sans-serif; /* Added var(--font-outfit) */
+  @apply text-sm; /* Default text size to 14px (sm will be mapped to 14px in tailwind.config) */
 }
 
 @layer base {
@@ -46,25 +48,25 @@ body {
   }
 
   .dark {
-    --background: 210 29% 17%; /* #2c3e50 - Adjusted slightly from 24% to 17% for deeper dark */
-    --foreground: 210 15% 90%; /* Light grey for text on dark background */
-    --card: 210 29% 22%; /* Slightly lighter than background for cards */
+    --background: 210 29% 17%; 
+    --foreground: 210 15% 90%; 
+    --card: 210 29% 22%; 
     --card-foreground: 210 15% 90%;
-    --popover: 210 29% 15%; /* Darker for popovers */
+    --popover: 210 29% 15%; 
     --popover-foreground: 210 15% 90%;
-    --primary: 48 89% 50%; /* #f1c40f */
-    --primary-foreground: 48 90% 10%; /* Dark, readable text on yellow */
-    --secondary: 210 20% 35%; /* A muted blue-grey for dark theme secondary */
+    --primary: 48 89% 50%; 
+    --primary-foreground: 48 90% 10%; 
+    --secondary: 210 20% 35%; 
     --secondary-foreground: 210 15% 90%;
     --muted: 210 20% 28%;
     --muted-foreground: 210 15% 60%;
-    --accent: 145 63% 49%; /* #2ecc71 */
-    --accent-foreground: 145 60% 95%; /* Very light green/white for text on accent green */
+    --accent: 145 63% 49%; 
+    --accent-foreground: 145 60% 95%; 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 20% 30%;
     --input: 210 20% 30%;
-    --ring: 48 89% 55%; /* Primary color for ring */
+    --ring: 48 89% 55%; 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -72,9 +74,9 @@ body {
     --chart-5: 340 75% 55%;
 
     /* Sidebar vars for dark theme */
-    --sidebar-background: 210 29% 14%; /* Darker sidebar background */
+    --sidebar-background: 210 29% 14%; 
     --sidebar-foreground: 210 15% 85%;
-    --sidebar-primary: 48 89% 50%; /* Primary color for sidebar highlights */
+    --sidebar-primary: 48 89% 50%; 
     --sidebar-primary-foreground: 48 90% 10%;
     --sidebar-accent: 210 29% 20%;
     --sidebar-accent-foreground: 210 15% 90%;

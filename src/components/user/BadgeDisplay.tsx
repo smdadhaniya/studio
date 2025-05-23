@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Badge } from '@/lib/types';
@@ -7,19 +8,21 @@ import { ShieldQuestion, Trophy } from 'lucide-react'; // Default icon
 
 interface BadgeDisplayProps {
   unlockedBadges: Badge[];
-  allPossibleBadges: Badge[]; // To show locked badges or for context
+  allPossibleBadges: Badge[]; 
 }
 
 export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplayProps) {
   return (
     <Card className="shadow-md bg-card text-card-foreground">
       <CardHeader className="pb-2">
+         {/* CardTitle uses text-2xl which will map to 18px, text-lg for this specific one makes sense */}
         <CardTitle className="text-lg flex items-center gap-2">
           <Trophy className="w-5 h-5 text-primary" />
           <span>Achievements</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* text-sm will be 14px */}
         {allPossibleBadges.length === 0 && <p className="text-sm text-muted-foreground">No achievements defined yet.</p>}
         {allPossibleBadges.length > 0 && (
           <TooltipProvider delayDuration={100}>
@@ -41,9 +44,10 @@ export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplay
                         <IconComponent className="w-6 h-6" />
                       </div>
                     </TooltipTrigger>
+                    {/* TooltipContent font size is text-sm (14px) by default */}
                     <TooltipContent className="bg-popover text-popover-foreground">
                       <p className="font-semibold">{badge.name} {isUnlocked ? '(Unlocked)' : '(Locked)'}</p>
-                      <p className="text-sm">{badge.description}</p>
+                      <p className="text-sm">{badge.description}</p> {/* Ensure description is 14px */}
                     </TooltipContent>
                   </Tooltip>
                 );
@@ -52,7 +56,7 @@ export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplay
           </TooltipProvider>
         )}
          {unlockedBadges.length === 0 && allPossibleBadges.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-2">No achievements unlocked yet. Keep going!</p>
+            <p className="text-sm text-muted-foreground mt-2">No achievements unlocked yet. Keep going!</p> // text-sm (14px)
         )}
       </CardContent>
     </Card>
