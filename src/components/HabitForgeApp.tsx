@@ -8,7 +8,7 @@ import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
 import { getTodayDateString, parseDate } from '@/lib/dateUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
-import { HabitList } from '@/components/habit/HabitList';
+import { HabitTable } from '@/components/habit/HabitTable'; // Updated import
 import { XPDisplay } from '@/components/user/XPDisplay';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { Button } from '@/components/ui/button';
@@ -208,7 +208,7 @@ export default function HabitForgeApp() {
       </header>
 
       {/* Combined Header for XP and Badges */}
-      <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground shadow-md">
+      <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground"> {/* Removed shadow-md */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-x-6 gap-y-4">
           <XPDisplay
             xp={userProfile.xp}
@@ -231,7 +231,7 @@ export default function HabitForgeApp() {
       />
 
       <main>
-        <HabitList 
+        <HabitTable 
           habits={habits} 
           allProgress={allProgress} 
           onToggleComplete={handleToggleComplete}
