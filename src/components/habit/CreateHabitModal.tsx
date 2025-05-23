@@ -44,7 +44,7 @@ export function CreateHabitModal({
       {triggerButton && <DialogTrigger asChild>{triggerButton}</DialogTrigger>}
       <DialogContent className="sm:max-w-[525px] bg-card text-card-foreground">
         <DialogHeader>
-          <DialogTitle>{editingHabit ? 'Edit Habit' : 'Forge a New Habit'}</DialogTitle>
+          <DialogTitle>{editingHabit ? 'Edit Habit' : 'Track a New Habit'}</DialogTitle>
           <DialogDescription>
             {editingHabit ? 'Update the details of your habit.' : 'Define your new habit. Stay consistent and track your progress!'}
           </DialogDescription>

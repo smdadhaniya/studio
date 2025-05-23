@@ -67,7 +67,7 @@ export default function HabitForgeApp() {
     setHabits(prev => [...prev, newHabit]);
     setIsModalOpen(false);
     setEditingHabit(null);
-    toast({ title: "Habit Forged!", description: `"${newHabit.title}" has been added.` });
+    toast({ title: "Habit Tracked!", description: `"${newHabit.title}" is now being tracked.` });
   };
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
@@ -79,7 +79,7 @@ export default function HabitForgeApp() {
   };
   
   const handleEditHabit = (habit: Habit) => {
-    const iconName = typeof habit.icon !== 'string' ? (habit.icon as LucideIcon)?.displayName || habitIconsList[0].name : habit.icon;
+    const iconName = typeof habit.icon !== 'function' ? (habit.icon as LucideIcon)?.displayName || habitIconsList[0].name : habit.icon;
     setEditingHabit({...habit, icon: iconName});
     setIsModalOpen(true);
   };
@@ -201,7 +201,7 @@ export default function HabitForgeApp() {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-4xl font-bold text-primary flex items-center">
-            <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Forge
+            <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Track
         </h1>
         <div className="flex items-center gap-3">
              {permission !== 'granted' && (
@@ -210,7 +210,7 @@ export default function HabitForgeApp() {
                 </Button>
             )}
           <Button onClick={() => { setEditingHabit(null); setIsModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <PlusCircle className="w-5 h-5 mr-2" /> Forge New Habit
+            <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
           </Button>
         </div>
       </header>

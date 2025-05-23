@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Habit Forge',
-  description: 'Forge new habits and track your progress.',
+  title: 'Habit Track',
+  description: 'Track new habits and monitor your progress.',
 };
 
 export default function RootLayout({

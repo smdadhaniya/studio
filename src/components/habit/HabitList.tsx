@@ -16,7 +16,7 @@ export function HabitList({ habits, allProgress, onToggleComplete, onEditHabit, 
   if (habits.length === 0) {
     return (
       <div className="text-center py-10">
-        <p className="text-xl text-muted-foreground">No habits yet. Forge your first one!</p>
+        <p className="text-xl text-muted-foreground">No habits yet. Track your first one!</p>
       </div>
     );
   }

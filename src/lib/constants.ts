@@ -4,7 +4,7 @@ import { Award, Zap, Trophy, Star, ShieldCheck, CalendarDays } from 'lucide-reac
 export const XP_PER_COMPLETION = 10;
 export const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 1750, 2750, 4000, 5500, 7500, 10000]; // XP needed to reach level (index + 1)
 
-export const DEFAULT_USER_NAME = "Habit Forger";
+export const DEFAULT_USER_NAME = "Habit Tracker";
 
 export const HABIT_COLORS = [
   'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500', 
