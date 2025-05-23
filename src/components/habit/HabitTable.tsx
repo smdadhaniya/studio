@@ -4,7 +4,7 @@
 import type { Habit, HabitProgress, DailyProgress } from '@/lib/types';
 import { useState, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDate, isToday, isPast, isFuture } from 'date-fns';
-import { ChevronLeft, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit3, Trash2, Check } from 'lucide-react'; // Added Check icon
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { parseDate } from '@/lib/dateUtils';
@@ -42,45 +42,62 @@ function HabitRow({
         const dayProgress = habitProgressMap.get(dateStr);
         const isCompleted = dayProgress?.completed === true;
 
-        let cellBgColor = 'bg-background hover:bg-muted/50'; // Default for future or unhandled
-        let textColor = 'text-muted-foreground'; 
-        let contentText = '';
+        let cellBgColor = 'bg-background hover:bg-muted/50';
+        let squareBorderColor = 'border-muted-foreground';
+        let checkColor = 'text-white';
+        let content: React.ReactNode = null;
 
         if (isToday(day)) {
           cellBgColor = isCompleted ? 'bg-green-500 hover:bg-green-500/90' : 'bg-green-100 hover:bg-green-200/80';
-          textColor = isCompleted ? 'text-white' : 'text-green-700';
+          squareBorderColor = isCompleted ? 'border-white' : 'border-green-700';
+          checkColor = isCompleted ? 'text-white' : 'text-green-700';
         } else if (isPast(day)) {
           cellBgColor = isCompleted ? 'bg-slate-600 hover:bg-slate-600/90' : 'bg-red-100 hover:bg-red-200/80';
-          textColor = isCompleted ? 'text-white' : 'text-red-700';
+          squareBorderColor = isCompleted ? 'border-white' : 'border-red-700';
+          checkColor = isCompleted ? 'text-white' : 'text-red-700';
         } else { // Future days
            cellBgColor = 'bg-muted/30';
-           textColor = 'text-muted-foreground/50';
+           squareBorderColor = 'border-muted-foreground/50';
+           checkColor = 'text-muted-foreground/50';
         }
         
         if (isToday(day) || isPast(day)) {
-            if (isCompleted) {
-                contentText = habit.trackingFormat === 'measurable' && dayProgress?.value !== undefined ? String(dayProgress.value) : '✔';
-            } else {
-                // For past, uncompleted days (red background), no text needed unless specified
-                // For today, uncompleted (green background), no text needed, implies can be clicked
-                contentText = ''; 
+            if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
+                content = <span className={cn("text-xs font-semibold", checkColor)}>{String(dayProgress.value)}</span>;
+            } else { // 'yes/no' habit or measurable but not completed with value
+                content = (
+                    <div className={cn(
+                        "w-5 h-5 border-2 rounded-sm flex items-center justify-center",
+                        squareBorderColor
+                    )}>
+                        {isCompleted && <Check className={cn("w-4 h-4", checkColor)} strokeWidth={3} />}
+                    </div>
+                );
             }
+        } else { // Future days
+             content = (
+                <div className={cn(
+                    "w-5 h-5 border-2 rounded-sm flex items-center justify-center",
+                    squareBorderColor
+                )}>
+                </div>
+            );
         }
-        // Future days will have `contentText = ''` and be disabled
+
 
         return (
           <td key={dateStr} className="p-0 border border-border text-center w-10 h-10">
             <button
               onClick={() => {
-                  if (isFuture(day) && !isToday(day)) return; // Prevent action on future days
+                  if (isFuture(day) && !isToday(day)) return;
                   if (habit.trackingFormat === 'measurable' && !isCompleted) {
                       const valStr = prompt(`Enter value for ${habit.title} on ${format(day, "MMM d")}:`, String(dayProgress?.value || 1));
                       if (valStr !== null) {
                           const val = parseFloat(valStr);
                           if (!isNaN(val) && val > 0) {
                               onToggleComplete(habit.id, dateStr, val);
-                          } else if (valStr.trim() === "") { // Allow unsetting if they clear the prompt
-                                onToggleComplete(habit.id, dateStr, undefined); // This would toggle it off if it was on
+                          } else if (valStr.trim() === "") {
+                                onToggleComplete(habit.id, dateStr, undefined);
                           } else {
                               alert("Invalid number entered. Please enter a positive number.");
                           }
@@ -93,12 +110,11 @@ function HabitRow({
               className={cn(
                 "w-full h-full flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/70 focus:z-10 relative transition-colors",
                 cellBgColor,
-                textColor,
                 (isFuture(day) && !isToday(day)) ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               )}
               aria-label={`Mark habit ${habit.title} on ${format(day, "MMM d")} as ${isCompleted ? 'incomplete' : 'complete'}`}
             >
-              {contentText}
+              {content}
             </button>
           </td>
         );
