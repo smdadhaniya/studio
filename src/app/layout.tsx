@@ -1,15 +1,16 @@
 
 import type { Metadata } from 'next';
-import { Outfit } from 'next/font/google'; // Changed from Geist to Outfit
+import { Poppins } from 'next/font/google'; // Changed from Outfit to Poppins
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider, SidebarInset, Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Flame } from 'lucide-react';
 
-const outfit = Outfit({ // Changed from geistSans/geistMono to outfit
-  variable: '--font-outfit', // Changed variable name
+const poppins = Poppins({ // Changed from outfit to poppins
+  variable: '--font-poppins', // Changed variable name
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'], // Added common weights for Poppins
 });
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={`${outfit.variable} antialiased`} suppressHydrationWarning={true}> {/* Used outfit.variable */}
+      <body className={`${poppins.variable} antialiased`} suppressHydrationWarning={true}> {/* Used poppins.variable */}
         <SidebarProvider defaultOpen={false}>
           <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
             <SidebarHeader className="p-2 flex items-center justify-between">

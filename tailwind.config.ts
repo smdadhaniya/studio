@@ -1,6 +1,6 @@
 
 import type { Config } from "tailwindcss";
-import defaultTheme from 'tailwindcss/defaultTheme'; // Imported defaultTheme
+import defaultTheme from 'tailwindcss/defaultTheme'; 
 
 export default {
     darkMode: ["class"],
@@ -11,10 +11,10 @@ export default {
   ],
   theme: {
   	extend: {
-      fontFamily: { // Added Outfit font family
-        sans: ['var(--font-outfit)', ...defaultTheme.fontFamily.sans],
+      fontFamily: { 
+        sans: ['var(--font-poppins)', ...defaultTheme.fontFamily.sans], // Changed from --font-outfit to --font-poppins
       },
-      fontSize: { // Updated all font sizes to 13px
+      fontSize: { 
         'xs': '13px',
         'sm': '13px',
         'base': '13px',

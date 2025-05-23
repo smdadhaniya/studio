@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 body {
-  font-family: var(--font-outfit), Arial, Helvetica, sans-serif; /* Added var(--font-outfit) */
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif; /* Changed var(--font-outfit) to var(--font-poppins) */
   @apply text-[13px]; /* Default text size to 13px */
 }
 
