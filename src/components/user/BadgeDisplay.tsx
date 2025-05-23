@@ -3,7 +3,9 @@
 
 import type { Badge } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ShieldQuestion, Trophy } from 'lucide-react'; // Default icon
+import { Trophy } from 'lucide-react'; // For the section title
+// Default emoji if badge.icon is not provided, though it should be.
+const DEFAULT_BADGE_EMOJI = '❓'; 
 
 interface BadgeDisplayProps {
   unlockedBadges: Badge[];
@@ -23,19 +25,19 @@ export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplay
           <div className="flex flex-wrap gap-2 items-center">
             {allPossibleBadges.map(badge => {
               const isUnlocked = unlockedBadges.some(ub => ub.id === badge.id);
-              const IconComponent = typeof badge.icon === 'string' ? ShieldQuestion : badge.icon || ShieldQuestion;
+              const badgeEmoji = badge.icon || DEFAULT_BADGE_EMOJI;
               
               return (
                 <Tooltip key={badge.id}>
                   <TooltipTrigger asChild>
                     <div 
-                      className={`p-1.5 rounded-full border ${
+                      className={`p-1 rounded-full border text-base ${ // Reduced padding slightly
                         isUnlocked 
                           ? 'border-primary bg-primary/20 text-primary' 
                           : 'border-muted bg-muted/20 text-muted-foreground opacity-60'
                       }`}
                     >
-                      <IconComponent className="w-5 h-5" />
+                      <span role="img" aria-label={badge.name}>{badgeEmoji}</span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="bg-popover text-popover-foreground text-sm">

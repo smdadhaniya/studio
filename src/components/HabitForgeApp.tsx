@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
-import { SetupModal } from '@/components/user/SetupModal'; // Import SetupModal
+import { SetupModal } from '@/components/user/SetupModal';
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,8 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame } from 'lucide-react';
-import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
-import type { LucideIcon } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings } from 'lucide-react'; // Added Settings icon
+import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_EMOJIS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 
 const HABITS_KEY = 'habitForge_habits';
 const PROGRESS_KEY = 'habitForge_progress';
@@ -27,9 +26,10 @@ export default function HabitForgeApp() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [allProgress, setAllProgress] = useState<HabitProgress>({});
   const [userProfile, setUserProfile] = useState<UserProfile>(getInitialUserProfile());
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateHabitModalOpen, setIsCreateHabitModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
-  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false); // State for setup modal
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false); // For editing profile
 
   const { requestPermission, showNotification, permission } = useNotifications();
 
@@ -42,7 +42,6 @@ export default function HabitForgeApp() {
     setAllProgress(loadedProgress);
     setUserProfile(loadedProfile);
 
-    // Show setup modal if not completed
     if (!loadedProfile.hasCompletedSetup) {
       setIsSetupModalOpen(true);
     }
@@ -60,51 +59,48 @@ export default function HabitForgeApp() {
     setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
     
     const newHabitsFromPresets: Habit[] = selectedPresetHabits.map((preset, index) => {
-      const iconEntry = HABIT_ICONS_LIST.find(icon => icon.name === preset.icon);
       return {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         title: preset.title,
         description: preset.description,
         trackingFormat: preset.trackingFormat,
-        icon: iconEntry ? iconEntry.Icon : Flame,
-        color: HABIT_COLORS[(habits.length + index) % HABIT_COLORS.length], // Distribute colors
+        icon: preset.icon, // Emoji is already a string
+        color: HABIT_COLORS[(habits.length + index) % HABIT_COLORS.length],
       };
     });
 
     setHabits(prev => [...prev, ...newHabitsFromPresets]);
     toast({ title: "Welcome, " + name + "!", description: "Your Habit Track is ready." });
+    setIsSetupModalOpen(false); // Close initial setup
+    setIsEditProfileModalOpen(false); // Close edit profile if it was open
   };
 
   const handleHabitFormSubmit = (data: HabitFormData) => {
-    const habitIconEntry = HABIT_ICONS_LIST.find(icon => icon.name === data.icon);
     const newHabit: Habit = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       ...data,
-      icon: habitIconEntry ? habitIconEntry.Icon : Flame,
+      icon: data.icon, // Emoji is already a string
       color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
-    setIsModalOpen(false);
+    setIsCreateHabitModalOpen(false);
     setEditingHabit(null);
     toast({ title: "Habit Tracked!", description: `"${newHabit.title}" is now being tracked.` });
   };
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
-     const habitIconEntry = HABIT_ICONS_LIST.find(icon => icon.name === data.icon);
-     setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...data, icon: habitIconEntry ? habitIconEntry.Icon : h.icon, color: data.color || h.color } : h));
-     setIsModalOpen(false);
+     setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...data, icon: data.icon, color: data.color || h.color } : h));
+     setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
      toast({ title: "Habit Updated!", description: `"${data.title}" has been updated.` });
   };
   
   const handleEditHabit = (habit: Habit) => {
-    const iconName = typeof habit.icon === 'function' 
-        ? HABIT_ICONS_LIST.find(item => item.Icon === habit.icon)?.name || HABIT_ICONS_LIST[0].name
-        : typeof habit.icon === 'string' ? habit.icon : HABIT_ICONS_LIST[0].name;
-    setEditingHabit({...habit, icon: iconName});
-    setIsModalOpen(true);
+    // habit.icon is already an emoji string or undefined
+    setEditingHabit(habit);
+    setIsCreateHabitModalOpen(true);
   };
 
   const handleDeleteHabit = (habitId: string) => {
@@ -139,14 +135,12 @@ export default function HabitForgeApp() {
       } else {
         updatedHabitProgress = [...habitProgress, { date, completed: true, value }];
       }
-      // Ensure progress is sorted by date for accurate streak calculation and display
       updatedHabitProgress.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       return { ...prev, [habitId]: updatedHabitProgress };
     });
     
     const newCompletionStatus = !wasCompleted; 
     const updatedProgressForStreak = { ...allProgress };
-     // Manually update the specific progress entry for streak calculation before setAllProgress finishes
     const tempHabitProgress = updatedProgressForStreak[habitId] ? [...updatedProgressForStreak[habitId]] : [];
     const entryIndex = tempHabitProgress.findIndex(p => p.date === date);
     if (entryIndex !== -1) {
@@ -218,13 +212,13 @@ export default function HabitForgeApp() {
     return BADGES.filter(b => userProfile.unlockedBadgeIds.includes(b.id));
   }, [userProfile.unlockedBadgeIds]);
 
-  // If setup is not complete, render only the setup modal or a loading state
-  if (!userProfile.hasCompletedSetup) {
+  if (!userProfile.hasCompletedSetup && !isEditProfileModalOpen) {
     return (
       <SetupModal
         open={isSetupModalOpen}
         onOpenChange={setIsSetupModalOpen}
         onSubmit={handleSetupSubmit}
+        isEditing={false}
       />
     );
   }
@@ -236,14 +230,23 @@ export default function HabitForgeApp() {
             <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Track
         </h1>
         <div className="flex items-center gap-3">
-             {permission !== 'granted' && (
-                <Button onClick={requestPermission} variant="outline" size="sm" className="text-sm">
-                    <BellRing className="w-4 h-4 mr-2"/> Enable Notifications
-                </Button>
+            {permission !== 'granted' && (
+              <Button onClick={requestPermission} variant="outline" size="sm" className="text-sm">
+                  <BellRing className="w-4 h-4 mr-2"/> Enable Notifications
+              </Button>
             )}
-          <Button onClick={() => { setEditingHabit(null); setIsModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
-            <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
-          </Button>
+            <Button 
+              onClick={() => setIsEditProfileModalOpen(true)} 
+              variant="outline" 
+              size="sm" 
+              className="text-sm"
+              aria-label="Edit Profile"
+            >
+              <Settings className="w-4 h-4 mr-2" /> Edit Profile
+            </Button>
+            <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
+              <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
+            </Button>
         </div>
       </header>
 
@@ -259,17 +262,20 @@ export default function HabitForgeApp() {
       </div>
 
       <CreateHabitModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
+        open={isCreateHabitModalOpen}
+        onOpenChange={setIsCreateHabitModalOpen}
         onHabitCreate={handleHabitFormSubmit}
         editingHabit={editingHabit}
         onHabitUpdate={handleHabitUpdate}
       />
 
+      {/* Setup Modal for initial setup or editing profile */}
       <SetupModal
-        open={isSetupModalOpen}
-        onOpenChange={setIsSetupModalOpen}
+        open={isSetupModalOpen || isEditProfileModalOpen}
+        onOpenChange={isEditProfileModalOpen ? setIsEditProfileModalOpen : setIsSetupModalOpen}
         onSubmit={handleSetupSubmit}
+        currentUserName={userProfile.userName}
+        isEditing={isEditProfileModalOpen || userProfile.hasCompletedSetup} 
       />
 
       <main>

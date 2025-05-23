@@ -12,15 +12,14 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HABIT_COLORS, HABIT_ICONS_LIST } from '@/lib/constants';
+import { HABIT_COLORS, HABIT_EMOJIS_LIST } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react';
 
 const habitFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().max(500).optional(),
   trackingFormat: z.enum(['yes/no', 'measurable'], { required_error: "Tracking format is required" }),
-  icon: z.string().optional(), // Icon name as string
+  icon: z.string().optional(), // Emoji character
   color: z.string().optional(),
 });
 
@@ -28,7 +27,7 @@ export type HabitFormData = z.infer<typeof habitFormSchema>;
 
 interface HabitFormProps {
   onSubmit: (data: HabitFormData) => void;
-  initialData?: Partial<Habit> & { icon?: string }; // Ensure initialData.icon is string for form
+  initialData?: Partial<Habit>;
   onCancel?: () => void;
 }
 
@@ -39,14 +38,12 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
       title: initialData?.title || '',
       description: initialData?.description || '',
       trackingFormat: initialData?.trackingFormat || 'yes/no',
-      icon: initialData?.icon || HABIT_ICONS_LIST[0].name, // Expect string icon name
+      icon: initialData?.icon || (HABIT_EMOJIS_LIST.length > 0 ? HABIT_EMOJIS_LIST[0].emoji : undefined),
       color: initialData?.color || HABIT_COLORS[0],
     },
   });
 
-  const selectedIconName = form.watch('icon');
-  const SelectedIcon = HABIT_ICONS_LIST.find(i => i.name === selectedIconName)?.Icon || HABIT_ICONS_LIST[0].Icon;
-
+  const selectedEmoji = form.watch('icon');
 
   return (
     <Form {...form}>
@@ -58,7 +55,7 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Morning Run" {...field} className="text-base"/>
+                <Input placeholder="e.g., Morning Run" {...field} className="text-sm"/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,21 +113,21 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
             name="icon"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Icon (Optional)</FormLabel>
+                <FormLabel>Emoji (Optional)</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
-                        {SelectedIcon && <SelectedIcon className="w-4 h-4" />}
-                        <SelectValue placeholder="Select an icon" />
+                        {selectedEmoji && <span className="text-lg">{selectedEmoji}</span>}
+                        <SelectValue placeholder="Select an emoji" />
                       </div>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {HABIT_ICONS_LIST.map(({ name, Icon }) => (
-                      <SelectItem key={name} value={name}>
+                    {HABIT_EMOJIS_LIST.map(({ name, emoji }) => (
+                      <SelectItem key={emoji} value={emoji}>
                         <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4" />
+                          <span className="text-lg">{emoji}</span>
                           <span>{name}</span>
                         </div>
                       </SelectItem>

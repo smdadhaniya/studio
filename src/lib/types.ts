@@ -1,5 +1,5 @@
 
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react'; // Keep for now if any non-habit/badge UI elements use it, otherwise can be removed.
 
 export type HabitTrackingFormat = 'yes/no' | 'measurable';
 
@@ -10,7 +10,7 @@ export interface Habit {
   trackingFormat: HabitTrackingFormat;
   createdAt: string; // ISO date string
   color?: string; // Optional color for the habit card
-  icon?: LucideIcon | string; // Optional icon for the habit
+  icon?: string; // Emoji character
 }
 
 export interface DailyProgress {
@@ -35,7 +35,7 @@ export interface Badge {
   id: string;
   name: string;
   description: string;
-  icon: LucideIcon | string;
+  icon: string; // Emoji character
   milestoneType: 'streak' | 'totalCompletions' | 'level';
   milestoneValue: number;
   xpReward?: number;
@@ -46,5 +46,5 @@ export interface PresetHabitFormData {
   title: string;
   description: string;
   trackingFormat: HabitTrackingFormat;
-  icon: string; // Icon name (string)
+  icon: string; // Emoji character
 }

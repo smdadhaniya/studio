@@ -1,14 +1,14 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PRESET_HABITS, HABIT_ICONS_LIST } from '@/lib/constants';
+import { PRESET_HABITS } from '@/lib/constants';
 import type { PresetHabitFormData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -16,11 +16,22 @@ interface SetupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (name: string, selectedHabits: PresetHabitFormData[]) => void;
+  currentUserName?: string; // For pre-filling name when editing
+  isEditing?: boolean; // To adjust titles/text if needed
 }
 
-export function SetupModal({ open, onOpenChange, onSubmit }: SetupModalProps) {
-  const [userName, setUserName] = useState('');
+export function SetupModal({ open, onOpenChange, onSubmit, currentUserName, isEditing }: SetupModalProps) {
+  const [userName, setUserName] = useState(currentUserName || '');
   const [selectedHabits, setSelectedHabits] = useState<PresetHabitFormData[]>([]);
+
+  useEffect(() => {
+    if (currentUserName) {
+      setUserName(currentUserName);
+    }
+    // Reset selected habits when modal is opened for editing, so user can add more
+    // Or, if it's initial setup, it's already empty.
+    setSelectedHabits([]); 
+  }, [open, currentUserName]);
 
   const handleToggleHabit = (habit: PresetHabitFormData, checked: boolean) => {
     setSelectedHabits(prev =>
@@ -39,17 +50,17 @@ export function SetupModal({ open, onOpenChange, onSubmit }: SetupModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
-        // Prevent closing via overlay click or escape key if setup isn't complete
-        if (!isOpen && userName.trim() === '') {
-             // Optionally, inform user they need to complete setup, or just keep it open
+        if (!isEditing && !isOpen && userName.trim() === '') {
             return;
         }
         onOpenChange(isOpen);
     }}>
       <DialogContent className="sm:max-w-[600px] bg-card text-card-foreground">
         <DialogHeader>
-          <DialogTitle className="text-xl">Welcome to Habit Track!</DialogTitle>
-          <DialogDescription>Let's get you set up. First, what should we call you?</DialogDescription>
+          <DialogTitle className="text-xl">{isEditing ? "Edit Profile / Add Habits" : "Welcome to Habit Track!"}</DialogTitle>
+          <DialogDescription>
+            {isEditing ? "Update your name or add more preset habits to track." : "Let's get you set up. First, what should we call you?"}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
@@ -65,11 +76,10 @@ export function SetupModal({ open, onOpenChange, onSubmit }: SetupModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Choose some habits to start with (optional):</Label>
+            <Label>{isEditing ? "Add more habits from presets:" : "Choose some habits to start with (optional):"}</Label>
             <ScrollArea className="h-[300px] w-full rounded-md border p-4">
               <div className="space-y-3">
                 {PRESET_HABITS.map((habit) => {
-                  const IconComponent = HABIT_ICONS_LIST.find(icon => icon.name === habit.icon)?.Icon || HABIT_ICONS_LIST[0].Icon;
                   const isSelected = selectedHabits.some(sh => sh.title === habit.title);
                   return (
                     <div
@@ -86,7 +96,7 @@ export function SetupModal({ open, onOpenChange, onSubmit }: SetupModalProps) {
                         onCheckedChange={(checked) => handleToggleHabit(habit, !!checked)}
                         aria-label={`Select ${habit.title}`}
                       />
-                      <IconComponent className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      {habit.icon && <span className="text-lg">{habit.icon}</span>}
                       <div className="flex-1">
                         <label
                           htmlFor={`habit-${habit.title.replace(/\s+/g, '-')}`}
@@ -106,7 +116,7 @@ export function SetupModal({ open, onOpenChange, onSubmit }: SetupModalProps) {
 
         <div className="flex justify-end pt-2">
           <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Get Started
+            {isEditing ? "Save Changes" : "Get Started"}
           </Button>
         </div>
       </DialogContent>

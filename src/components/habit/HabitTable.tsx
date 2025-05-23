@@ -35,55 +35,58 @@ function HabitRow({
   return (
     <tr className="group hover:bg-muted/10 transition-colors border-b">
       <td className="p-2 border-r text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[120px] max-w-[160px] truncate" title={habit.title}>
-        {habit.title}
+        <div className="flex items-center gap-2">
+          {habit.icon && <span className="text-lg">{habit.icon}</span>}
+          <span>{habit.title}</span>
+        </div>
       </td>
       {daysInMonth.map(day => {
         const dateStr = format(day, 'yyyy-MM-dd');
         const dayProgress = habitProgressMap.get(dateStr);
         const isCompleted = dayProgress?.completed === true;
 
-        let checkboxActualBg = '';
-        let checkboxActualBorder = '';
+        let checkboxSquareBg = '';
+        let checkboxSquareBorder = '';
         let contentColor = ''; // For checkmark or measurable value text
 
         if (isToday(day)) {
             if (isCompleted) {
-                checkboxActualBg = 'bg-green-500';
-                checkboxActualBorder = 'border-green-600';
+                checkboxSquareBg = 'bg-green-500';
+                checkboxSquareBorder = 'border-green-600';
                 contentColor = 'text-white';
             } else { // Incomplete Today
-                checkboxActualBg = 'bg-green-100';
-                checkboxActualBorder = 'border-green-500';
+                checkboxSquareBg = 'bg-green-100';
+                checkboxSquareBorder = 'border-green-500';
                 contentColor = 'text-green-700';
             }
         } else if (isPast(day)) {
             if (isCompleted) {
-                checkboxActualBg = 'bg-slate-600';
-                checkboxActualBorder = 'border-slate-700';
+                checkboxSquareBg = 'bg-slate-600';
+                checkboxSquareBorder = 'border-slate-700';
                 contentColor = 'text-white';
             } else { // Missed Past
-                checkboxActualBg = 'bg-red-200'; 
-                checkboxActualBorder = 'border-red-500';
+                checkboxSquareBg = 'bg-red-200'; 
+                checkboxSquareBorder = 'border-red-500';
                 contentColor = 'text-red-700';
             }
         } else { // Future days
-            checkboxActualBg = 'bg-gray-100';
-            checkboxActualBorder = 'border-gray-400';
+            checkboxSquareBg = 'bg-gray-100';
+            checkboxSquareBorder = 'border-gray-400';
             contentColor = 'text-gray-500';
         }
         
         let buttonInnerContent: React.ReactNode = null;
-        const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center"; // Reduced size
+        const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center"; 
 
         if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
             buttonInnerContent = (
-                <div className={cn(squareBaseClasses, checkboxActualBg, checkboxActualBorder)}>
+                <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
                     <span className={cn("text-xs font-semibold", contentColor)}>{String(dayProgress.value)}</span>
                 </div>
             );
         } else { 
             buttonInnerContent = (
-                <div className={cn(squareBaseClasses, checkboxActualBg, checkboxActualBorder)}>
+                <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
                     {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />} 
                 </div>
             );
@@ -91,7 +94,7 @@ function HabitRow({
 
 
         return (
-          <td key={dateStr} className="p-0 text-center w-8 h-8"> {/* Reduced cell size */}
+          <td key={dateStr} className="p-0 text-center w-8 h-8"> 
             <button
               onClick={() => {
                   if (isFuture(day) && !isToday(day)) return;
@@ -124,7 +127,7 @@ function HabitRow({
           </td>
         );
       })}
-      <td className="p-2 border-l text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px]"> {/* Reduced min-width */}
+      <td className="p-2 border-l text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px]"> 
         <div className="flex gap-1 justify-center">
           <Button onClick={() => onEditHabit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10">
             <Edit3 className="w-4 h-4" />
@@ -190,7 +193,7 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
             <tr className="bg-muted/50">
               <th className="p-2 border-b border-r text-left font-medium text-muted-foreground sticky left-0 bg-muted/50 z-20 min-w-[120px] max-w-[160px]">Habit</th>
               {daysInMonth.map(day => (
-                <th key={day.toISOString()} className="p-2 border-b text-center font-medium text-muted-foreground w-8 tabular-nums"> {/* Reduced width */}
+                <th key={day.toISOString()} className="p-2 border-b text-center font-medium text-muted-foreground w-8 tabular-nums"> 
                   {getDate(day)}
                 </th>
               ))}
