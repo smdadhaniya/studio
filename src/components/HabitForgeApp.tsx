@@ -15,8 +15,8 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings } from 'lucide-react'; // Added Settings icon
-import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_EMOJIS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
+import { PlusCircle, BellRing, Flame, Settings } from 'lucide-react';
+import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, DEFAULT_USER_NAME } from '@/lib/constants';
 
 const HABITS_KEY = 'habitForge_habits';
 const PROGRESS_KEY = 'habitForge_progress';
@@ -29,17 +29,26 @@ export default function HabitForgeApp() {
   const [isCreateHabitModalOpen, setIsCreateHabitModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
-  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false); // For editing profile
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   const { requestPermission, showNotification, permission } = useNotifications();
 
   useEffect(() => {
-    const loadedHabits = loadState<Habit[]>(HABITS_KEY, []);
+    const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
+    // Sanitize loaded habits to ensure icon and color are in the expected format
+    const sanitizedHabits = loadedHabitsInitial.map((h, index) => ({
+      ...h,
+      icon: typeof h.icon === 'string' ? h.icon : undefined, // Ensure icon is string or undefined
+      color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color)) 
+             ? h.color 
+             : HABIT_COLORS[index % HABIT_COLORS.length] // Assign a default valid color
+    }));
+    setHabits(sanitizedHabits);
+
     const loadedProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
-    const loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
-    
-    setHabits(loadedHabits);
     setAllProgress(loadedProgress);
+    
+    const loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
     setUserProfile(loadedProfile);
 
     if (!loadedProfile.hasCompletedSetup) {
@@ -49,7 +58,7 @@ export default function HabitForgeApp() {
     if (Notification.permission === 'default') {
         // requestPermission(); 
     }
-  }, [requestPermission]);
+  }, [requestPermission]); // requestPermission is stable, so this typically runs once on mount
 
   useEffect(() => { saveState(HABITS_KEY, habits); }, [habits]);
   useEffect(() => { saveState(PROGRESS_KEY, allProgress); }, [allProgress]);
@@ -72,8 +81,8 @@ export default function HabitForgeApp() {
 
     setHabits(prev => [...prev, ...newHabitsFromPresets]);
     toast({ title: "Welcome, " + name + "!", description: "Your Habit Track is ready." });
-    setIsSetupModalOpen(false); // Close initial setup
-    setIsEditProfileModalOpen(false); // Close edit profile if it was open
+    setIsSetupModalOpen(false);
+    setIsEditProfileModalOpen(false);
   };
 
   const handleHabitFormSubmit = (data: HabitFormData) => {
@@ -81,7 +90,7 @@ export default function HabitForgeApp() {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       ...data,
-      icon: data.icon, // Emoji is already a string
+      icon: data.icon, 
       color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
@@ -98,7 +107,6 @@ export default function HabitForgeApp() {
   };
   
   const handleEditHabit = (habit: Habit) => {
-    // habit.icon is already an emoji string or undefined
     setEditingHabit(habit);
     setIsCreateHabitModalOpen(true);
   };
@@ -269,7 +277,6 @@ export default function HabitForgeApp() {
         onHabitUpdate={handleHabitUpdate}
       />
 
-      {/* Setup Modal for initial setup or editing profile */}
       <SetupModal
         open={isSetupModalOpen || isEditProfileModalOpen}
         onOpenChange={isEditProfileModalOpen ? setIsEditProfileModalOpen : setIsSetupModalOpen}

@@ -7,7 +7,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMont
 import { ChevronLeft, ChevronRight, Edit3, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { parseDate } from '@/lib/dateUtils';
+// import { parseDate } from '@/lib/dateUtils'; // Not used directly here, daysInMonth are Dates
 
 interface HabitRowProps {
   habit: Habit;
@@ -36,7 +36,7 @@ function HabitRow({
     <tr className="group hover:bg-muted/10 transition-colors border-b">
       <td className="p-2 border-r text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[120px] max-w-[160px] truncate" title={habit.title}>
         <div className="flex items-center gap-2">
-          {habit.icon && <span className="text-lg">{habit.icon}</span>}
+          {typeof habit.icon === 'string' && habit.icon ? <span className="text-lg">{habit.icon}</span> : null}
           <span>{habit.title}</span>
         </div>
       </td>
