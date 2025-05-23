@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Habit, DailyProgress, HabitProgress } from '@/lib/types';
@@ -22,7 +23,7 @@ export function HabitList({ habits, allProgress, onToggleComplete, onEditHabit, 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
+    <div className="flex flex-col gap-4 p-1">
       {habits.map(habit => (
         <HabitCard
           key={habit.id}

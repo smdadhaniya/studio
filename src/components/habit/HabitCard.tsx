@@ -2,7 +2,6 @@
 "use client";
 
 import type { Habit, DailyProgress } from '@/lib/types';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProgressGrid } from './ProgressGrid';
@@ -29,84 +28,102 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
   const todayProgress = useMemo(() => progress.find(p => isSameDay(p.date, todayStr)), [progress, todayStr]);
   const isCompletedToday = todayProgress?.completed === true;
 
-  // Ensure IconComponent is always a valid React component (function).
-  // If habit.icon is not a function (e.g., it's a string, undefined, or a plain object from localStorage), default to Flame.
   const IconComponent: LucideIcon = typeof habit.icon === 'function' ? habit.icon : Flame;
   
-  const cardColor = habit.color || HABIT_COLORS[parseInt(habit.id.slice(-2), 16) % HABIT_COLORS.length];
+  const habitBaseColor = habit.color || HABIT_COLORS[parseInt(habit.id.slice(-2), 16) % HABIT_COLORS.length];
+  const iconColorClass = habitBaseColor.startsWith('bg-') ? habitBaseColor.replace('bg-', 'text-') : 'text-primary';
 
 
   const handleComplete = () => {
     const value = habit.trackingFormat === 'measurable' ? parseFloat(measurableValue) : undefined;
     if (habit.trackingFormat === 'measurable' && (isNaN(value as number) || measurableValue === '')) {
-        // Optionally show an error or prevent completion if value is required and invalid
-        // For now, allow completion even if value is not set, or treat as 0
          onToggleComplete(habit.id, todayStr, 0);
     } else {
         onToggleComplete(habit.id, todayStr, value);
     }
-    setMeasurableValue(''); // Reset after submission
+    setMeasurableValue('');
   };
 
   const handleMissed = () => {
-    onToggleComplete(habit.id, todayStr); // Will mark as incomplete
+    onToggleComplete(habit.id, todayStr); 
   };
 
   return (
-    <Card className={cn("flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300", cardColor, "text-primary-foreground")}>
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-                <IconComponent className="w-7 h-7" />
-                <CardTitle className="text-xl font-semibold">{habit.title}</CardTitle>
-            </div>
-            <div className="flex items-center gap-1 text-lg font-medium">
-                <Flame className="w-5 h-5 text-orange-300" />
-                <span>{streak}</span>
-            </div>
+    <div className={cn(
+      "flex flex-col sm:flex-row items-stretch sm:items-center p-3 sm:p-4 border rounded-lg shadow-sm gap-3 sm:gap-4",
+      "bg-card text-card-foreground"
+    )}>
+
+      {/* Left Section: Icon, Title, Description */}
+      <div className="flex-shrink-0 sm:w-auto sm:max-w-[20%] md:max-w-[25%] space-y-1">
+        <div className="flex items-center gap-2">
+          <IconComponent className={cn("w-5 h-5 sm:w-6 sm:h-6", iconColorClass)} />
+          <h3 className="font-semibold text-base sm:text-lg truncate" title={habit.title}>{habit.title}</h3>
         </div>
-        {habit.description && <CardDescription className="text-sm text-primary-foreground/80 pt-1">{habit.description}</CardDescription>}
-      </CardHeader>
-      <CardContent className="flex-grow space-y-4">
-        <ProgressGrid progress={progress} habitColor="bg-background/30" />
+        {habit.description && (
+          <p className="text-xs text-muted-foreground hidden md:block truncate" title={habit.description}>
+            {habit.description}
+          </p>
+        )}
+        <div className="flex sm:hidden gap-1 pt-1"> {/* Mobile Edit/Delete */}
+            <Button onClick={() => onEdit(habit)} variant="ghost" size="sm" className="text-xs p-1 h-auto">
+                <Edit3 className="w-3 h-3 mr-1" /> Edit
+            </Button>
+            <Button onClick={() => onDelete(habit.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive text-xs p-1 h-auto">
+                <Trash2 className="w-3 h-3 mr-1" /> Delete
+            </Button>
+        </div>
+      </div>
+
+      {/* Middle Section: Progress Grid */}
+      <div className="flex-grow min-w-0"> {/* min-w-0 is important for flex item to shrink */}
+        <ProgressGrid progress={progress} habitColor={habitBaseColor} />
+      </div>
+
+      {/* Right Section: Streak, Value Input, Actions */}
+      <div className="flex-shrink-0 sm:w-auto sm:max-w-[30%] md:max-w-[25%] flex flex-col items-start sm:items-end gap-2 mt-2 sm:mt-0">
+        <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-muted-foreground">
+          <Flame className="w-4 h-4 text-orange-400" />
+          <span>{streak} Day Streak</span>
+        </div>
+
         {habit.trackingFormat === 'measurable' && !isCompletedToday && (
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Enter value (e.g., 5)"
-              value={measurableValue}
-              onChange={(e) => setMeasurableValue(e.target.value)}
-              className="bg-background/80 text-foreground placeholder:text-muted-foreground focus:bg-background"
-            />
-          </div>
+          <Input
+            type="number"
+            placeholder="Value"
+            value={measurableValue}
+            onChange={(e) => setMeasurableValue(e.target.value)}
+            className="h-8 text-xs sm:text-sm w-full sm:max-w-[100px]"
+          />
         )}
-      </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-4 border-t border-primary-foreground/20">
-        <div className="flex gap-2">
-             <Button onClick={() => onEdit(habit)} variant="outline" size="sm" className="bg-transparent hover:bg-background/20 border-primary-foreground/50 text-primary-foreground">
-                <Edit3 className="w-4 h-4 mr-1" /> Edit
+
+        <div className="flex gap-2 w-full sm:w-auto justify-start sm:justify-end">
+          {!isCompletedToday ? (
+            <Button onClick={handleComplete} size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 text-xs flex-grow sm:flex-grow-0">
+              <CheckCircle className="w-3 h-3 mr-1" /> Mark Done
             </Button>
-            <Button onClick={() => onDelete(habit.id)} variant="destructive" size="sm" className="bg-red-700 hover:bg-red-800 text-white">
-                <Trash2 className="w-4 h-4 mr-1" /> Delete
+          ) : (
+            <Button onClick={handleComplete} variant="outline" size="sm" className="h-8 text-xs border-green-500 text-green-600 hover:bg-green-50 flex-grow sm:flex-grow-0">
+              <CheckCircle className="w-3 h-3 mr-1 text-green-500" /> Done!
+            </Button>
+          )}
+          {isCompletedToday && (
+             <Button onClick={handleMissed} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-xs flex-grow sm:flex-grow-0">
+                <XCircle className="w-3 h-3 mr-1" /> Undone
+            </Button>
+          )}
+        </div>
+         <div className="hidden sm:flex gap-1 mt-1"> {/* Desktop Edit/Delete */}
+            <Button onClick={() => onEdit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-foreground">
+                <Edit3 className="w-4 h-4" />
+                <span className="sr-only">Edit</span>
+            </Button>
+            <Button onClick={() => onDelete(habit.id)} variant="ghost" size="icon" className="text-destructive hover:text-destructive-foreground hover:bg-destructive w-7 h-7">
+                <Trash2 className="w-4 h-4" />
+                <span className="sr-only">Delete</span>
             </Button>
         </div>
-        <div className="flex gap-2">
-        {!isCompletedToday ? (
-          <Button onClick={handleComplete} variant="default" size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <CheckCircle className="w-4 h-4 mr-2" /> Mark Done
-          </Button>
-        ) : (
-          <Button onClick={handleComplete} variant="outline" size="sm" className="bg-transparent hover:bg-background/20 border-primary-foreground/50 text-primary-foreground">
-            <CheckCircle className="w-4 h-4 mr-2 text-green-400" /> Completed!
-          </Button>
-        )}
-        {isCompletedToday && (
-             <Button onClick={handleMissed} variant="outline" size="sm" className="bg-transparent hover:bg-background/20 border-primary-foreground/50 text-primary-foreground">
-                <XCircle className="w-4 h-4 mr-1" /> Mark Undone
-            </Button>
-        )}
-        </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
