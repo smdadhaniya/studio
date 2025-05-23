@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Check, ListChecks, Target } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { HABIT_COLORS } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 
 const habitIcons: {name: string, Icon: LucideIcon}[] = [
     { name: "Check", Icon: Check },
