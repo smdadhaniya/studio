@@ -33,8 +33,8 @@ function HabitRow({
   }, [habitDailyProgress]);
 
   return (
-    <tr className="group hover:bg-muted/10 transition-colors">
-      <td className="p-2 border border-border text-sm text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[150px] max-w-[200px] truncate" title={habit.title}>
+    <tr className="group hover:bg-muted/10 transition-colors border-b border-border">
+      <td className="p-2 border-r border-border text-sm text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[150px] max-w-[200px] truncate" title={habit.title}>
         {habit.title}
       </td>
       {daysInMonth.map(day => {
@@ -62,7 +62,7 @@ function HabitRow({
                 checkboxActualBorder = 'border-slate-700';
                 contentColor = 'text-white';
             } else { // Missed Past
-                checkboxActualBg = 'bg-red-100'; // Visually, this was bg-red-100 for cell, with border-red-700 square. For square BG, maybe bg-red-200 or bg-red-100 is ok.
+                checkboxActualBg = 'bg-red-200'; 
                 checkboxActualBorder = 'border-red-500';
                 contentColor = 'text-red-700';
             }
@@ -81,7 +81,7 @@ function HabitRow({
                     <span className={cn("text-xs font-semibold", contentColor)}>{String(dayProgress.value)}</span>
                 </div>
             );
-        } else { // 'yes/no' habit, or measurable not completed, or future
+        } else { 
             buttonInnerContent = (
                 <div className={cn(squareBaseClasses, checkboxActualBg, checkboxActualBorder)}>
                     {isCompleted && <Check className={cn("w-4 h-4", contentColor)} strokeWidth={3} />}
@@ -91,7 +91,7 @@ function HabitRow({
 
 
         return (
-          <td key={dateStr} className="p-0 border border-border text-center w-10 h-10">
+          <td key={dateStr} className="p-0 text-center w-10 h-10">
             <button
               onClick={() => {
                   if (isFuture(day) && !isToday(day)) return;
@@ -114,7 +114,7 @@ function HabitRow({
               disabled={isFuture(day) && !isToday(day)}
               className={cn(
                 "w-full h-full flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/70 focus:z-10 relative transition-colors",
-                "bg-background hover:bg-muted/50", // Cell button has neutral background
+                "bg-background hover:bg-muted/50", 
                 (isFuture(day) && !isToday(day)) ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               )}
               aria-label={`Mark habit ${habit.title} on ${format(day, "MMM d")} as ${isCompleted ? 'incomplete' : 'complete'}`}
@@ -124,7 +124,7 @@ function HabitRow({
           </td>
         );
       })}
-      <td className="p-2 border border-border text-sm text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5]">
+      <td className="p-2 border-l border-border text-sm text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5]">
         <div className="flex gap-1 justify-center">
           <Button onClick={() => onEditHabit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10">
             <Edit3 className="w-4 h-4" />
@@ -190,7 +190,7 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
             <tr className="bg-muted/50">
               <th className="p-2 border-b border-r border-border text-left text-sm font-medium text-muted-foreground sticky left-0 bg-muted/50 z-20 min-w-[150px] max-w-[200px]">Habit</th>
               {daysInMonth.map(day => (
-                <th key={day.toISOString()} className="p-2 border-b border-r border-border text-center text-xs font-medium text-muted-foreground w-10 tabular-nums">
+                <th key={day.toISOString()} className="p-2 border-b border-border text-center text-xs font-medium text-muted-foreground w-10 tabular-nums">
                   {getDate(day)}
                 </th>
               ))}
@@ -215,3 +215,4 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
     </div>
   );
 }
+
