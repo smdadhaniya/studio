@@ -4,7 +4,7 @@ import {
   Settings, BookOpen, Droplet, Dumbbell, Brain, Bed, Apple, Wrench, AlarmClock, GlassWater,
   PenSquare, CalendarDays, Headphones, Users, Smartphone, Sparkles, HeartHandshake, Lightbulb,
   DollarSign, Palette, Smile, Star, Sunrise, TrendingUp, Zap, Shield, CalendarCheck, Trophy,
-  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart
+  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity // Added Activity for wider selection
 } from 'lucide-react';
 
 
@@ -40,7 +40,7 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Palette", icon: Palette },
     { name: "Pen Square", icon: PenSquare },
     { name: "Line Chart", icon: LineChart },
-    { name: "Music Note (fallback)", icon: Film }, // Using Film as a placeholder if no direct MusicNote
+    { name: "Music Note (fallback)", icon: Film },
     { name: "Droplet", icon: Droplet },
     { name: "Wrench", icon: Wrench },
     { name: "Alarm Clock", icon: AlarmClock },
@@ -50,6 +50,17 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Sparkles", icon: Sparkles },
     { name: "Lightbulb", icon: Lightbulb },
     { name: "Settings", icon: Settings },
+    // Icons specifically for badges, ensuring they are in the list
+    { name: "Star", icon: Star },
+    { name: "TrendingUp", icon: TrendingUp },
+    { name: "Zap", icon: Zap },
+    { name: "Shield", icon: Shield },
+    { name: "CalendarCheck", icon: CalendarCheck },
+    { name: "Trophy", icon: Trophy },
+    { name: "BarChartBig", icon: BarChartBig },
+    { name: "Award", icon: Award },
+    { name: "Gem", icon: Gem },
+    { name: "Activity", icon: Activity }, // Added for more options
 ];
 
 
@@ -82,7 +93,7 @@ export const BADGES: Badge[] = [
     id: 'first_completion',
     name: 'First Step',
     description: 'Complete a habit for the first time.',
-    icon: 'Star',
+    icon: 'Star', // Ensure 'Star' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'totalCompletions',
     milestoneValue: 1,
     xpReward: 5,
@@ -91,7 +102,7 @@ export const BADGES: Badge[] = [
     id: 'dedicated_start',
     name: 'Dedicated Start',
     description: 'Complete any habit 5 times.',
-    icon: 'Sunrise',
+    icon: 'Sunrise', // Ensure 'Sunrise' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'totalCompletions',
     milestoneValue: 5,
     xpReward: 25,
@@ -100,7 +111,7 @@ export const BADGES: Badge[] = [
     id: 'consistent_performer',
     name: 'Consistent Performer',
     description: 'Achieve a 3-day streak on any habit.',
-    icon: 'TrendingUp',
+    icon: 'TrendingUp', // Ensure 'TrendingUp' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'streak',
     milestoneValue: 3,
     xpReward: 30,
@@ -109,7 +120,7 @@ export const BADGES: Badge[] = [
     id: '7_day_streak',
     name: 'Week Warrior',
     description: 'Maintain a habit streak for 7 days.',
-    icon: 'Zap',
+    icon: 'Zap', // Ensure 'Zap' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'streak',
     milestoneValue: 7,
     xpReward: 50,
@@ -118,7 +129,7 @@ export const BADGES: Badge[] = [
     id: 'habit_committed',
     name: 'Committed',
     description: 'Log 15 completions for any single habit.',
-    icon: 'Shield',
+    icon: 'Shield', // Ensure 'Shield' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'totalCompletions',
     milestoneValue: 15,
     xpReward: 75,
@@ -127,7 +138,7 @@ export const BADGES: Badge[] = [
     id: 'perfect_week',
     name: 'Perfect Week',
     description: 'Complete a habit every day for a full week (7 completions).',
-    icon: 'CalendarCheck',
+    icon: 'CalendarCheck', // Ensure 'CalendarCheck' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'totalCompletions',
     milestoneValue: 7,
     xpReward: 60,
@@ -136,7 +147,7 @@ export const BADGES: Badge[] = [
     id: '30_day_streak',
     name: 'Month Master',
     description: 'Maintain a habit streak for 30 days.',
-    icon: 'Trophy',
+    icon: 'Trophy', // Ensure 'Trophy' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'streak',
     milestoneValue: 30,
     xpReward: 200,
@@ -145,7 +156,7 @@ export const BADGES: Badge[] = [
     id: 'power_user',
     name: 'Power User',
     description: 'Log 50 total completions across all habits.',
-    icon: 'BarChartBig',
+    icon: 'BarChartBig', // Ensure 'BarChartBig' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'totalCompletions',
     milestoneValue: 50,
     xpReward: 100,
@@ -154,7 +165,7 @@ export const BADGES: Badge[] = [
     id: 'level_5',
     name: 'Level 5 Reached',
     description: 'Reach Level 5 in your habit journey.',
-    icon: 'Award',
+    icon: 'Award', // Ensure 'Award' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'level',
     milestoneValue: 5,
     xpReward: 100,
@@ -163,7 +174,7 @@ export const BADGES: Badge[] = [
     id: 'level_10_hero',
     name: 'Level 10 Hero',
     description: 'Reach Level 10 in your habit journey.',
-    icon: 'Gem',
+    icon: 'Gem', // Ensure 'Gem' is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'level',
     milestoneValue: 10,
     xpReward: 150,

@@ -3,15 +3,16 @@
 
 import type { Badge as BadgeType } from '@/lib/types'; // Renamed to avoid conflict with component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Trophy } from 'lucide-react';
-import { HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants'; // For looking up icon components
+import { Trophy, Award } from 'lucide-react'; // Award is a common fallback
+import { HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants'; 
 
 interface BadgeDisplayProps {
   unlockedBadges: BadgeType[];
   allPossibleBadges: BadgeType[];
 }
 
-const DefaultBadgeIcon = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === "Award")?.icon || Trophy; // Fallback icon
+// A more specific default icon if 'Award' itself isn't in the list for some reason, or Trophy if Award also fails
+const DefaultBadgeIconComponent = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === "Award")?.icon || Trophy;
 
 export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplayProps) {
   return (
@@ -26,19 +27,20 @@ export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplay
           <div className="flex flex-wrap gap-2 items-center">
             {allPossibleBadges.map(badge => {
               const isUnlocked = unlockedBadges.some(ub => ub.id === badge.id);
-              const IconComponent = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === badge.icon)?.icon || DefaultBadgeIcon;
+              // Look up the icon component from the comprehensive list
+              const IconComponent = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === badge.icon)?.icon || DefaultBadgeIconComponent;
 
               return (
                 <Tooltip key={badge.id}>
                   <TooltipTrigger asChild>
                     <div
-                      className={`p-1.5 rounded-full border flex items-center justify-center ${ // Adjusted padding for Lucide
+                      className={`p-1.5 rounded-full border flex items-center justify-center ${ 
                         isUnlocked
                           ? 'border-primary bg-primary/20 text-primary'
                           : 'border-muted bg-muted/20 text-muted-foreground opacity-60'
                       }`}
                     >
-                      <IconComponent className="w-4 h-4" /> {/* Lucide icons are sized this way */}
+                      <IconComponent className="w-4 h-4" /> 
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="bg-popover text-popover-foreground text-sm">
