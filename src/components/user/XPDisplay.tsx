@@ -2,7 +2,6 @@
 "use client";
 
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 
 interface XPDisplayProps {
@@ -15,25 +14,16 @@ interface XPDisplayProps {
 
 export function XPDisplay({ xp, level, progressToNextLevel, currentLevelXpDisplay, nextLevelXpThresholdDisplay }: XPDisplayProps) {
   return (
-    <Card className="shadow-md bg-card text-card-foreground">
-      <CardHeader className="pb-2">
-        {/* CardTitle uses text-2xl which will map to 18px, text-lg for this specific one makes sense */}
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Star className="w-5 h-5 text-primary" />
-          <span>Level {level}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Text will be text-sm (14px) by default */}
-        <div className="mb-1 text-sm text-muted-foreground">
-          Total XP: {xp}
-        </div>
-        <Progress value={progressToNextLevel} className="w-full h-3 [&>div]:bg-primary" />
-        {/* Text will be text-xs which maps to 14px */}
-        <div className="text-xs text-muted-foreground mt-1 text-right">
-          {currentLevelXpDisplay.toLocaleString()} / {nextLevelXpThresholdDisplay === Infinity ? 'MAX' : nextLevelXpThresholdDisplay.toLocaleString()} XP to next level
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-1">
+        <Star className="w-5 h-5 text-primary" />
+        <span className="text-lg font-semibold">Level {level}</span>
+      </div>
+      <Progress value={progressToNextLevel} className="w-full h-2.5 mb-1 [&>div]:bg-primary" />
+      <div className="text-xs text-muted-foreground flex justify-between items-center">
+        <span>Total XP: {xp.toLocaleString()}</span>
+        <span>{currentLevelXpDisplay.toLocaleString()} / {nextLevelXpThresholdDisplay === Infinity ? 'MAX' : nextLevelXpThresholdDisplay.toLocaleString()} XP</span>
+      </div>
+    </div>
   );
 }

@@ -19,6 +19,7 @@ import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
 import { PlusCircle, Settings, BellRing, Flame, CheckCircle, ListChecks, Target } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, DEFAULT_USER_NAME } from '@/lib/constants';
 import type { LucideIcon } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const habitIconsList: { name: string, Icon: LucideIcon }[] = [
     { name: "Check", Icon: CheckCircle },
@@ -190,21 +191,36 @@ export default function HabitForgeApp() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <header className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-lg font-bold text-primary flex items-center"> {/* Changed text-4xl to text-lg (18px) */}
+      <header className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <h1 className="text-lg font-bold text-primary flex items-center">
             <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Track
         </h1>
         <div className="flex items-center gap-3">
              {permission !== 'granted' && (
-                <Button onClick={requestPermission} variant="outline" size="sm" className="text-sm"> {/* Ensure button text is 14px */}
+                <Button onClick={requestPermission} variant="outline" size="sm" className="text-sm">
                     <BellRing className="w-4 h-4 mr-2"/> Enable Notifications
                 </Button>
             )}
-          <Button onClick={() => { setEditingHabit(null); setIsModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm"> {/* Ensure button text is 14px */}
+          <Button onClick={() => { setEditingHabit(null); setIsModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
             <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
           </Button>
         </div>
       </header>
+
+      {/* Combined Header for XP and Badges */}
+      <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground shadow-md">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-x-6 gap-y-4">
+          <XPDisplay
+            xp={userProfile.xp}
+            level={level}
+            progressToNextLevel={progressToNextLevel}
+            currentLevelXpDisplay={currentLevelXp}
+            nextLevelXpThresholdDisplay={nextLevelXp}
+          />
+          <Separator orientation="vertical" className="hidden md:block h-auto self-stretch bg-border/50" />
+          <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
+        </div>
+      </div>
 
       <CreateHabitModal
         open={isModalOpen}
@@ -214,27 +230,15 @@ export default function HabitForgeApp() {
         onHabitUpdate={handleHabitUpdate}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        <div className="lg:col-span-1 space-y-6">
-          <XPDisplay 
-            xp={userProfile.xp} 
-            level={level} 
-            progressToNextLevel={progressToNextLevel}
-            currentLevelXpDisplay={currentLevelXp}
-            nextLevelXpThresholdDisplay={nextLevelXp}
-             />
-          <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
-        </div>
-        <main className="lg:col-span-3">
-          <HabitList 
-            habits={habits} 
-            allProgress={allProgress} 
-            onToggleComplete={handleToggleComplete}
-            onEditHabit={handleEditHabit}
-            onDeleteHabit={handleDeleteHabit}
-          />
-        </main>
-      </div>
+      <main>
+        <HabitList 
+          habits={habits} 
+          allProgress={allProgress} 
+          onToggleComplete={handleToggleComplete}
+          onEditHabit={handleEditHabit}
+          onDeleteHabit={handleDeleteHabit}
+        />
+      </main>
       
     </div>
   );
