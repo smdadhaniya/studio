@@ -4,7 +4,7 @@
 import type { Habit, HabitProgress, DailyProgress } from '@/lib/types';
 import { useState, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDate, isToday, isPast, isFuture } from 'date-fns';
-import { ChevronLeft, ChevronRight, Edit3, Trash2, Check } from 'lucide-react'; // Added Check icon
+import { ChevronLeft, ChevronRight, Edit3, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { parseDate } from '@/lib/dateUtils';
@@ -42,44 +42,49 @@ function HabitRow({
         const dayProgress = habitProgressMap.get(dateStr);
         const isCompleted = dayProgress?.completed === true;
 
-        let cellBgColor = 'bg-background hover:bg-muted/50';
-        let squareBorderColor = 'border-muted-foreground';
-        let checkColor = 'text-white';
-        let content: React.ReactNode = null;
+        let checkboxActualBg = '';
+        let checkboxActualBorder = '';
+        let contentColor = ''; // For checkmark or measurable value text
 
         if (isToday(day)) {
-          cellBgColor = isCompleted ? 'bg-green-500 hover:bg-green-500/90' : 'bg-green-100 hover:bg-green-200/80';
-          squareBorderColor = isCompleted ? 'border-white' : 'border-green-700';
-          checkColor = isCompleted ? 'text-white' : 'text-green-700';
+            if (isCompleted) {
+                checkboxActualBg = 'bg-green-500';
+                checkboxActualBorder = 'border-green-600';
+                contentColor = 'text-white';
+            } else { // Incomplete Today
+                checkboxActualBg = 'bg-green-100';
+                checkboxActualBorder = 'border-green-500';
+                contentColor = 'text-green-700';
+            }
         } else if (isPast(day)) {
-          cellBgColor = isCompleted ? 'bg-slate-600 hover:bg-slate-600/90' : 'bg-red-100 hover:bg-red-200/80';
-          squareBorderColor = isCompleted ? 'border-white' : 'border-red-700';
-          checkColor = isCompleted ? 'text-white' : 'text-red-700';
-        } else { // Future days
-           cellBgColor = 'bg-muted/30';
-           squareBorderColor = 'border-muted-foreground/50';
-           checkColor = 'text-muted-foreground/50';
-        }
-        
-        if (isToday(day) || isPast(day)) {
-            if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
-                content = <span className={cn("text-xs font-semibold", checkColor)}>{String(dayProgress.value)}</span>;
-            } else { // 'yes/no' habit or measurable but not completed with value
-                content = (
-                    <div className={cn(
-                        "w-5 h-5 border-2 rounded-sm flex items-center justify-center",
-                        squareBorderColor
-                    )}>
-                        {isCompleted && <Check className={cn("w-4 h-4", checkColor)} strokeWidth={3} />}
-                    </div>
-                );
+            if (isCompleted) {
+                checkboxActualBg = 'bg-slate-600';
+                checkboxActualBorder = 'border-slate-700';
+                contentColor = 'text-white';
+            } else { // Missed Past
+                checkboxActualBg = 'bg-red-100'; // Visually, this was bg-red-100 for cell, with border-red-700 square. For square BG, maybe bg-red-200 or bg-red-100 is ok.
+                checkboxActualBorder = 'border-red-500';
+                contentColor = 'text-red-700';
             }
         } else { // Future days
-             content = (
-                <div className={cn(
-                    "w-5 h-5 border-2 rounded-sm flex items-center justify-center",
-                    squareBorderColor
-                )}>
+            checkboxActualBg = 'bg-gray-100';
+            checkboxActualBorder = 'border-gray-400';
+            contentColor = 'text-gray-500';
+        }
+        
+        let buttonInnerContent: React.ReactNode = null;
+        const squareBaseClasses = "w-5 h-5 border-2 rounded-sm flex items-center justify-center";
+
+        if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
+            buttonInnerContent = (
+                <div className={cn(squareBaseClasses, checkboxActualBg, checkboxActualBorder)}>
+                    <span className={cn("text-xs font-semibold", contentColor)}>{String(dayProgress.value)}</span>
+                </div>
+            );
+        } else { // 'yes/no' habit, or measurable not completed, or future
+            buttonInnerContent = (
+                <div className={cn(squareBaseClasses, checkboxActualBg, checkboxActualBorder)}>
+                    {isCompleted && <Check className={cn("w-4 h-4", contentColor)} strokeWidth={3} />}
                 </div>
             );
         }
@@ -109,12 +114,12 @@ function HabitRow({
               disabled={isFuture(day) && !isToday(day)}
               className={cn(
                 "w-full h-full flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/70 focus:z-10 relative transition-colors",
-                cellBgColor,
+                "bg-background hover:bg-muted/50", // Cell button has neutral background
                 (isFuture(day) && !isToday(day)) ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               )}
               aria-label={`Mark habit ${habit.title} on ${format(day, "MMM d")} as ${isCompleted ? 'incomplete' : 'complete'}`}
             >
-              {content}
+              {buttonInnerContent}
             </button>
           </td>
         );
@@ -210,4 +215,3 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
     </div>
   );
 }
-
