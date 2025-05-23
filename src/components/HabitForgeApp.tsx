@@ -16,7 +16,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
 import { PlusCircle, BellRing, Flame, Settings } from 'lucide-react';
-import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, DEFAULT_USER_NAME } from '@/lib/constants';
+import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 
 const HABITS_KEY = 'habitForge_habits';
 const PROGRESS_KEY = 'habitForge_progress';
@@ -35,30 +35,36 @@ export default function HabitForgeApp() {
 
   useEffect(() => {
     const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
-    // Sanitize loaded habits to ensure icon and color are in the expected format
-    const sanitizedHabits = loadedHabitsInitial.map((h, index) => ({
-      ...h,
-      icon: typeof h.icon === 'string' ? h.icon : undefined, // Ensure icon is string or undefined
-      color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color)) 
-             ? h.color 
-             : HABIT_COLORS[index % HABIT_COLORS.length] // Assign a default valid color
-    }));
+    const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
+      let iconName = typeof h.icon === 'string' ? h.icon : undefined;
+      // Ensure iconName is a valid Lucide icon name if it exists
+      if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
+        iconName = undefined; // Reset if old/invalid icon name
+      }
+      return {
+        ...h,
+        icon: iconName,
+        color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color))
+               ? h.color
+               : HABIT_COLORS[index % HABIT_COLORS.length]
+      };
+    });
     setHabits(sanitizedHabits);
 
     const loadedProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
     setAllProgress(loadedProgress);
-    
+
     const loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
     setUserProfile(loadedProfile);
 
     if (!loadedProfile.hasCompletedSetup) {
       setIsSetupModalOpen(true);
     }
-    
+
     if (Notification.permission === 'default') {
-        // requestPermission(); 
+        // requestPermission();
     }
-  }, [requestPermission]); // requestPermission is stable, so this typically runs once on mount
+  }, [requestPermission]);
 
   useEffect(() => { saveState(HABITS_KEY, habits); }, [habits]);
   useEffect(() => { saveState(PROGRESS_KEY, allProgress); }, [allProgress]);
@@ -66,7 +72,7 @@ export default function HabitForgeApp() {
 
   const handleSetupSubmit = (name: string, selectedPresetHabits: PresetHabitFormData[]) => {
     setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
-    
+
     const newHabitsFromPresets: Habit[] = selectedPresetHabits.map((preset, index) => {
       return {
         id: crypto.randomUUID(),
@@ -74,7 +80,7 @@ export default function HabitForgeApp() {
         title: preset.title,
         description: preset.description,
         trackingFormat: preset.trackingFormat,
-        icon: preset.icon, // Emoji is already a string
+        icon: preset.icon, // This is already icon name (string)
         color: HABIT_COLORS[(habits.length + index) % HABIT_COLORS.length],
       };
     });
@@ -89,8 +95,7 @@ export default function HabitForgeApp() {
     const newHabit: Habit = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
-      ...data,
-      icon: data.icon, 
+      ...data, // data.icon is already icon name (string)
       color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
@@ -105,7 +110,7 @@ export default function HabitForgeApp() {
      setEditingHabit(null);
      toast({ title: "Habit Updated!", description: `"${data.title}" has been updated.` });
   };
-  
+
   const handleEditHabit = (habit: Habit) => {
     setEditingHabit(habit);
     setIsCreateHabitModalOpen(true);
@@ -146,8 +151,8 @@ export default function HabitForgeApp() {
       updatedHabitProgress.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       return { ...prev, [habitId]: updatedHabitProgress };
     });
-    
-    const newCompletionStatus = !wasCompleted; 
+
+    const newCompletionStatus = !wasCompleted;
     const updatedProgressForStreak = { ...allProgress };
     const tempHabitProgress = updatedProgressForStreak[habitId] ? [...updatedProgressForStreak[habitId]] : [];
     const entryIndex = tempHabitProgress.findIndex(p => p.date === date);
@@ -160,12 +165,12 @@ export default function HabitForgeApp() {
     updatedProgressForStreak[habitId] = tempHabitProgress;
 
 
-    if (newCompletionStatus) { 
+    if (newCompletionStatus) {
       let newXp = userProfile.xp + XP_PER_COMPLETION;
       const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
         {...userProfile, xp: newXp}, habits, updatedProgressForStreak
       );
-      
+
       const finalXp = profileWithBadges.xp;
       const { level: finalLevel } = calculateLevel(finalXp);
       setUserProfile({...profileWithBadges, level: finalLevel});
@@ -178,7 +183,7 @@ export default function HabitForgeApp() {
           showNotification("Achievement Unlocked!", { body: `You earned the "${badge.name}" badge!` });
         });
       }
-      
+
       const newStreak = calculateStreak(habitId, updatedProgressForStreak);
       const milestoneReached = newBadges.length > 0 || (newStreak > 0 && newStreak % 5 === 0) || (finalLevel > userProfile.level);
 
@@ -198,9 +203,9 @@ export default function HabitForgeApp() {
         }
       }
 
-    } else { 
-      const newStreak = calculateStreak(habitId, updatedProgressForStreak); 
-      if (oldStreak > 0 && newStreak < oldStreak) { 
+    } else {
+      const newStreak = calculateStreak(habitId, updatedProgressForStreak);
+      if (oldStreak > 0 && newStreak < oldStreak) {
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -243,10 +248,10 @@ export default function HabitForgeApp() {
                   <BellRing className="w-4 h-4 mr-2"/> Enable Notifications
               </Button>
             )}
-            <Button 
-              onClick={() => setIsEditProfileModalOpen(true)} 
-              variant="outline" 
-              size="sm" 
+            <Button
+              onClick={() => setIsEditProfileModalOpen(true)}
+              variant="outline"
+              size="sm"
               className="text-sm"
               aria-label="Edit Profile"
             >
@@ -282,19 +287,19 @@ export default function HabitForgeApp() {
         onOpenChange={isEditProfileModalOpen ? setIsEditProfileModalOpen : setIsSetupModalOpen}
         onSubmit={handleSetupSubmit}
         currentUserName={userProfile.userName}
-        isEditing={isEditProfileModalOpen || userProfile.hasCompletedSetup} 
+        isEditing={isEditProfileModalOpen || userProfile.hasCompletedSetup}
       />
 
       <main>
-        <HabitTable 
-          habits={habits} 
-          allProgress={allProgress} 
+        <HabitTable
+          habits={habits}
+          allProgress={allProgress}
           onToggleComplete={handleToggleComplete}
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
         />
       </main>
-      
+
     </div>
   );
 }

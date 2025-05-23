@@ -7,7 +7,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMont
 import { ChevronLeft, ChevronRight, Edit3, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-// import { parseDate } from '@/lib/dateUtils'; // Not used directly here, daysInMonth are Dates
+import { HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants';
 
 interface HabitRowProps {
   habit: Habit;
@@ -32,11 +32,13 @@ function HabitRow({
     return map;
   }, [habitDailyProgress]);
 
+  const IconComponent = habit.icon ? HABIT_LUCIDE_ICONS_LIST.find(item => item.name === habit.icon)?.icon : null;
+
   return (
     <tr className="group hover:bg-muted/10 transition-colors border-b">
       <td className="p-2 border-r text-foreground sticky left-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[120px] max-w-[160px] truncate" title={habit.title}>
         <div className="flex items-center gap-2">
-          {typeof habit.icon === 'string' && habit.icon ? <span className="text-lg">{habit.icon}</span> : null}
+          {IconComponent && <IconComponent className="w-4 h-4 text-muted-foreground" />}
           <span>{habit.title}</span>
         </div>
       </td>
@@ -65,7 +67,7 @@ function HabitRow({
                 checkboxSquareBorder = 'border-slate-700';
                 contentColor = 'text-white';
             } else { // Missed Past
-                checkboxSquareBg = 'bg-red-200'; 
+                checkboxSquareBg = 'bg-red-200';
                 checkboxSquareBorder = 'border-red-500';
                 contentColor = 'text-red-700';
             }
@@ -74,9 +76,9 @@ function HabitRow({
             checkboxSquareBorder = 'border-gray-400';
             contentColor = 'text-gray-500';
         }
-        
+
         let buttonInnerContent: React.ReactNode = null;
-        const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center"; 
+        const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center";
 
         if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
             buttonInnerContent = (
@@ -84,17 +86,17 @@ function HabitRow({
                     <span className={cn("text-xs font-semibold", contentColor)}>{String(dayProgress.value)}</span>
                 </div>
             );
-        } else { 
+        } else {
             buttonInnerContent = (
                 <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
-                    {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />} 
+                    {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />}
                 </div>
             );
         }
 
 
         return (
-          <td key={dateStr} className="p-0 text-center w-8 h-8"> 
+          <td key={dateStr} className="p-0 text-center w-8 h-8">
             <button
               onClick={() => {
                   if (isFuture(day) && !isToday(day)) return;
@@ -117,7 +119,7 @@ function HabitRow({
               disabled={isFuture(day) && !isToday(day)}
               className={cn(
                 "w-full h-full flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/70 focus:z-10 relative transition-colors",
-                "bg-background hover:bg-muted/50", 
+                "bg-background hover:bg-muted/50",
                 (isFuture(day) && !isToday(day)) ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               )}
               aria-label={`Mark habit ${habit.title} on ${format(day, "MMM d")} as ${isCompleted ? 'incomplete' : 'complete'}`}
@@ -127,7 +129,7 @@ function HabitRow({
           </td>
         );
       })}
-      <td className="p-2 border-l text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px]"> 
+      <td className="p-2 border-l text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[80px]">
         <div className="flex gap-1 justify-center">
           <Button onClick={() => onEditHabit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10">
             <Edit3 className="w-4 h-4" />
@@ -193,7 +195,7 @@ export function HabitTable({ habits, allProgress, onToggleComplete, onEditHabit,
             <tr className="bg-muted/50">
               <th className="p-2 border-b border-r text-left font-medium text-muted-foreground sticky left-0 bg-muted/50 z-20 min-w-[120px] max-w-[160px]">Habit</th>
               {daysInMonth.map(day => (
-                <th key={day.toISOString()} className="p-2 border-b text-center font-medium text-muted-foreground w-8 tabular-nums"> 
+                <th key={day.toISOString()} className="p-2 border-b text-center font-medium text-muted-foreground w-8 tabular-nums">
                   {getDate(day)}
                 </th>
               ))}

@@ -1,16 +1,17 @@
 
 "use client";
 
-import type { Badge } from '@/lib/types';
+import type { Badge as BadgeType } from '@/lib/types'; // Renamed to avoid conflict with component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Trophy } from 'lucide-react'; // For the section title
-// Default emoji if badge.icon is not provided, though it should be.
-const DEFAULT_BADGE_EMOJI = '❓'; 
+import { Trophy } from 'lucide-react';
+import { HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants'; // For looking up icon components
 
 interface BadgeDisplayProps {
-  unlockedBadges: Badge[];
-  allPossibleBadges: Badge[]; 
+  unlockedBadges: BadgeType[];
+  allPossibleBadges: BadgeType[];
 }
+
+const DefaultBadgeIcon = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === "Award")?.icon || Trophy; // Fallback icon
 
 export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplayProps) {
   return (
@@ -25,19 +26,19 @@ export function BadgeDisplay({ unlockedBadges, allPossibleBadges }: BadgeDisplay
           <div className="flex flex-wrap gap-2 items-center">
             {allPossibleBadges.map(badge => {
               const isUnlocked = unlockedBadges.some(ub => ub.id === badge.id);
-              const badgeEmoji = badge.icon || DEFAULT_BADGE_EMOJI;
-              
+              const IconComponent = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === badge.icon)?.icon || DefaultBadgeIcon;
+
               return (
                 <Tooltip key={badge.id}>
                   <TooltipTrigger asChild>
-                    <div 
-                      className={`p-1 rounded-full border text-base ${ // Reduced padding slightly
-                        isUnlocked 
-                          ? 'border-primary bg-primary/20 text-primary' 
+                    <div
+                      className={`p-1.5 rounded-full border flex items-center justify-center ${ // Adjusted padding for Lucide
+                        isUnlocked
+                          ? 'border-primary bg-primary/20 text-primary'
                           : 'border-muted bg-muted/20 text-muted-foreground opacity-60'
                       }`}
                     >
-                      <span role="img" aria-label={badge.name}>{badgeEmoji}</span>
+                      <IconComponent className="w-4 h-4" /> {/* Lucide icons are sized this way */}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="bg-popover text-popover-foreground text-sm">

@@ -1,72 +1,79 @@
 
-import type { Badge, PresetHabitFormData } from './types';
-// Lucide icons are no longer primary for habits/badges, but might be used elsewhere in UI (e.g. action buttons)
-import { Settings } from 'lucide-react'; 
+import type { Badge, PresetHabitFormData, IconListItem } from './types';
+import {
+  Settings, BookOpen, Droplet, Dumbbell, Brain, Bed, Apple, Wrench, AlarmClock, GlassWater,
+  PenSquare, CalendarDays, Headphones, Users, Smartphone, Sparkles, HeartHandshake, Lightbulb,
+  DollarSign, Palette, Smile, Star, Sunrise, TrendingUp, Zap, Shield, CalendarCheck, Trophy,
+  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart
+} from 'lucide-react';
 
 
 export const XP_PER_COMPLETION = 10;
-export const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 1750, 2750, 4000, 5500, 7500, 10000]; 
+export const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 1750, 2750, 4000, 5500, 7500, 10000];
 
 export const DEFAULT_USER_NAME = "Habit Tracker";
 
 export const HABIT_COLORS = [
-  'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500', 
-  'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500', 
-  'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500', 
+  'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
+  'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
+  'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
   'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-rose-500'
 ];
 
-// List of emojis for users to choose from when creating/editing habits
-export const HABIT_EMOJIS_LIST: { name: string, emoji: string }[] = [
-    { name: "Check Mark", emoji: "✅" },
-    { name: "Target", emoji: "🎯" },
-    { name: "Book", emoji: "📚" },
-    { name: "Bed", emoji: "🛌" },
-    { name: "Apple", emoji: "🍎" },
-    { name: "Dumbbell", emoji: "🏋️" },
-    { name: "Brain", emoji: "🧠" },
-    { name: "Sunrise", emoji: "🌅" },
-    { name: "Moon", emoji: "🌙" },
-    { name: "Briefcase", emoji: "💼" },
-    { name: "Smile", emoji: "😊" },
-    { name: "Heart", emoji: "❤️" },
-    { name: "Money", emoji: "💰" },
-    { name: "People", emoji: "👥" },
-    { name: "Coffee", emoji: "☕" },
-    { name: "Headphones", emoji: "🎧" },
-    { name: "Palette", emoji: "🎨" },
-    { name: "Pen", emoji: "🖋️" },
-    { name: "Chart", emoji: "📊" },
-    { name: "Music", emoji: "🎵" },
-    { name: "Movie", emoji: "🎬" },
-    { name: "Water Drop", emoji: "💧" },
-    { name: "Running", emoji: "🏃" },
-    { name: "Salad", emoji: "🥗" },
-    { name: "Writing", emoji: "✍️" },
+export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
+    { name: "Check", icon: Check },
+    { name: "Target", icon: Target },
+    { name: "Book Open", icon: BookOpen },
+    { name: "Bed", icon: Bed },
+    { name: "Apple", icon: Apple },
+    { name: "Dumbbell", icon: Dumbbell },
+    { name: "Brain", icon: Brain },
+    { name: "Sunrise", icon: Sunrise },
+    { name: "Moon", icon: Moon },
+    { name: "Briefcase", icon: Briefcase },
+    { name: "Smile", icon: Smile },
+    { name: "Heart Handshake", icon: HeartHandshake },
+    { name: "Dollar Sign", icon: DollarSign },
+    { name: "Users", icon: Users },
+    { name: "Coffee", icon: Coffee },
+    { name: "Headphones", icon: Headphones },
+    { name: "Palette", icon: Palette },
+    { name: "Pen Square", icon: PenSquare },
+    { name: "Line Chart", icon: LineChart },
+    { name: "Music Note (fallback)", icon: Film }, // Using Film as a placeholder if no direct MusicNote
+    { name: "Droplet", icon: Droplet },
+    { name: "Wrench", icon: Wrench },
+    { name: "Alarm Clock", icon: AlarmClock },
+    { name: "Glass Water", icon: GlassWater },
+    { name: "Calendar Days", icon: CalendarDays },
+    { name: "Smartphone", icon: Smartphone },
+    { name: "Sparkles", icon: Sparkles },
+    { name: "Lightbulb", icon: Lightbulb },
+    { name: "Settings", icon: Settings },
 ];
 
 
 export const PRESET_HABITS: PresetHabitFormData[] = [
-  { title: 'Drink 8 glasses of water', description: 'Stay hydrated throughout the day.', trackingFormat: 'yes/no', icon: '💧' },
-  { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'yes/no', icon: '📚' },
-  { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'yes/no', icon: '🏋️' },
-  { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'yes/no', icon: '🧠' },
-  { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: '🛌' },
-  { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', icon: '🍎' },
-  { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'yes/no', icon: '🛠️' }, // Tool emoji for skill
-  { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: '🌅' },
-  { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: '🚫🥤' }, // No drink emoji
-  { title: 'Write in a journal', description: 'Reflect on your day, thoughts, and feelings.', trackingFormat: 'yes/no', icon: '✍️' },
-  { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: '🗓️' }, // Calendar emoji
-  { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'yes/no', icon: '🎧' },
-  { title: 'Connect with a loved one', description: 'Call or spend quality time.', trackingFormat: 'yes/no', icon: '🫂' }, // People hugging
-  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', icon: '📵' }, // No mobile phone
-  { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'yes/no', icon: '🧹' }, // Broom emoji
-  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: '🙏' }, // Folded hands
-  { title: 'Work on a personal project', description: 'Dedicate time to your passions.', trackingFormat: 'yes/no', icon: '💡' }, // Lightbulb
-  { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: '💰' },
-  { title: 'Do something creative', description: 'Painting, writing, music, etc.', trackingFormat: 'yes/no', icon: '🎨' },
-  { title: 'Compliment someone', description: 'Spread positivity and kindness.', trackingFormat: 'yes/no', icon: '😊' },
+  { title: 'Drink 8 glasses of water', description: 'Stay hydrated throughout the day.', trackingFormat: 'yes/no', icon: 'Droplet' },
+  { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'yes/no', icon: 'BookOpen' },
+  { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'yes/no', icon: 'Dumbbell' },
+  { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'yes/no', icon: 'Brain' },
+  { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: 'Bed' },
+  { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', icon: 'Apple' },
+  { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'yes/no', icon: 'Wrench' },
+  { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: 'AlarmClock' },
+  { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: 'GlassWater' },
+  { title: 'Write in a journal', description: 'Reflect on your day, thoughts, and feelings.', trackingFormat: 'yes/no', icon: 'PenSquare' },
+  { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: 'CalendarDays' },
+  { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'yes/no', icon: 'Headphones' },
+  { title: 'Connect with a loved one', description: 'Call or spend quality time.', trackingFormat: 'yes/no', icon: 'Users' },
+  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', icon: 'Smartphone' },
+  { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'yes/no', icon: 'Sparkles' },
+  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: 'HeartHandshake' },
+  { title: 'Work on a personal project', description: 'Dedicate time to your passions.', trackingFormat: 'yes/no', icon: 'Lightbulb' },
+  { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'DollarSign' },
+  { title: 'Do something creative', description: 'Painting, writing, music, etc.', trackingFormat: 'yes/no', icon: 'Palette' },
+  { title: 'Compliment someone', description: 'Spread positivity and kindness.', trackingFormat: 'yes/no', icon: 'Smile' },
 ];
 
 
@@ -75,7 +82,7 @@ export const BADGES: Badge[] = [
     id: 'first_completion',
     name: 'First Step',
     description: 'Complete a habit for the first time.',
-    icon: '🌟', // Star emoji
+    icon: 'Star',
     milestoneType: 'totalCompletions',
     milestoneValue: 1,
     xpReward: 5,
@@ -84,7 +91,7 @@ export const BADGES: Badge[] = [
     id: 'dedicated_start',
     name: 'Dedicated Start',
     description: 'Complete any habit 5 times.',
-    icon: '🌅', // Sunrise emoji
+    icon: 'Sunrise',
     milestoneType: 'totalCompletions',
     milestoneValue: 5,
     xpReward: 25,
@@ -93,7 +100,7 @@ export const BADGES: Badge[] = [
     id: 'consistent_performer',
     name: 'Consistent Performer',
     description: 'Achieve a 3-day streak on any habit.',
-    icon: '📈', // Upward trend chart
+    icon: 'TrendingUp',
     milestoneType: 'streak',
     milestoneValue: 3,
     xpReward: 30,
@@ -102,7 +109,7 @@ export const BADGES: Badge[] = [
     id: '7_day_streak',
     name: 'Week Warrior',
     description: 'Maintain a habit streak for 7 days.',
-    icon: '⚡', // Zap emoji
+    icon: 'Zap',
     milestoneType: 'streak',
     milestoneValue: 7,
     xpReward: 50,
@@ -111,17 +118,17 @@ export const BADGES: Badge[] = [
     id: 'habit_committed',
     name: 'Committed',
     description: 'Log 15 completions for any single habit.',
-    icon: '🛡️', // Shield emoji
-    milestoneType: 'totalCompletions', 
-    milestoneValue: 15, 
+    icon: 'Shield',
+    milestoneType: 'totalCompletions',
+    milestoneValue: 15,
     xpReward: 75,
   },
   {
     id: 'perfect_week',
     name: 'Perfect Week',
     description: 'Complete a habit every day for a full week (7 completions).',
-    icon: '🗓️✨', // Calendar with sparkles
-    milestoneType: 'totalCompletions', 
+    icon: 'CalendarCheck',
+    milestoneType: 'totalCompletions',
     milestoneValue: 7,
     xpReward: 60,
   },
@@ -129,7 +136,7 @@ export const BADGES: Badge[] = [
     id: '30_day_streak',
     name: 'Month Master',
     description: 'Maintain a habit streak for 30 days.',
-    icon: '🏆', // Trophy emoji
+    icon: 'Trophy',
     milestoneType: 'streak',
     milestoneValue: 30,
     xpReward: 200,
@@ -138,8 +145,8 @@ export const BADGES: Badge[] = [
     id: 'power_user',
     name: 'Power User',
     description: 'Log 50 total completions across all habits.',
-    icon: '💪', // Flexed biceps
-    milestoneType: 'totalCompletions', 
+    icon: 'BarChartBig',
+    milestoneType: 'totalCompletions',
     milestoneValue: 50,
     xpReward: 100,
   },
@@ -147,7 +154,7 @@ export const BADGES: Badge[] = [
     id: 'level_5',
     name: 'Level 5 Reached',
     description: 'Reach Level 5 in your habit journey.',
-    icon: '🏅', // Medal emoji
+    icon: 'Award',
     milestoneType: 'level',
     milestoneValue: 5,
     xpReward: 100,
@@ -156,7 +163,7 @@ export const BADGES: Badge[] = [
     id: 'level_10_hero',
     name: 'Level 10 Hero',
     description: 'Reach Level 10 in your habit journey.',
-    icon: '💎', // Gem emoji
+    icon: 'Gem',
     milestoneType: 'level',
     milestoneValue: 10,
     xpReward: 150,

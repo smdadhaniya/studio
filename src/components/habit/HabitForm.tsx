@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Habit, HabitTrackingFormat } from '@/lib/types';
+import type { Habit, HabitTrackingFormat, IconListItem } from '@/lib/types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,14 +12,14 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HABIT_COLORS, HABIT_EMOJIS_LIST } from '@/lib/constants';
+import { HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 const habitFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().max(500).optional(),
   trackingFormat: z.enum(['yes/no', 'measurable'], { required_error: "Tracking format is required" }),
-  icon: z.string().optional(), // Emoji character
+  icon: z.string().optional(), // Lucide icon name (string)
   color: z.string().optional(),
 });
 
@@ -38,12 +38,13 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
       title: initialData?.title || '',
       description: initialData?.description || '',
       trackingFormat: initialData?.trackingFormat || 'yes/no',
-      icon: initialData?.icon || (HABIT_EMOJIS_LIST.length > 0 ? HABIT_EMOJIS_LIST[0].emoji : undefined),
+      icon: initialData?.icon || (HABIT_LUCIDE_ICONS_LIST.length > 0 ? HABIT_LUCIDE_ICONS_LIST[0].name : undefined),
       color: initialData?.color || HABIT_COLORS[0],
     },
   });
 
-  const selectedEmoji = form.watch('icon');
+  const selectedIconName = form.watch('icon');
+  const SelectedLucideIcon = HABIT_LUCIDE_ICONS_LIST.find(item => item.name === selectedIconName)?.icon;
 
   return (
     <Form {...form}>
@@ -106,29 +107,29 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
             </FormItem>
           )}
         />
-        
+
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="icon"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Emoji (Optional)</FormLabel>
+                <FormLabel>Icon (Optional)</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
-                        {selectedEmoji && <span className="text-lg">{selectedEmoji}</span>}
-                        <SelectValue placeholder="Select an emoji" />
+                        {SelectedLucideIcon && <SelectedLucideIcon className="w-4 h-4" />}
+                        <SelectValue placeholder="Select an icon" />
                       </div>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {HABIT_EMOJIS_LIST.map(({ name, emoji }) => (
-                      <SelectItem key={emoji} value={emoji}>
+                    {HABIT_LUCIDE_ICONS_LIST.map((item) => (
+                      <SelectItem key={item.name} value={item.name}>
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">{emoji}</span>
-                          <span>{name}</span>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.name}</span>
                         </div>
                       </SelectItem>
                     ))}

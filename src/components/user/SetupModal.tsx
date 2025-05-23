@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PRESET_HABITS } from '@/lib/constants';
+import { PRESET_HABITS, HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants';
 import type { PresetHabitFormData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -28,9 +28,7 @@ export function SetupModal({ open, onOpenChange, onSubmit, currentUserName, isEd
     if (currentUserName) {
       setUserName(currentUserName);
     }
-    // Reset selected habits when modal is opened for editing, so user can add more
-    // Or, if it's initial setup, it's already empty.
-    setSelectedHabits([]); 
+    setSelectedHabits([]);
   }, [open, currentUserName]);
 
   const handleToggleHabit = (habit: PresetHabitFormData, checked: boolean) => {
@@ -62,7 +60,7 @@ export function SetupModal({ open, onOpenChange, onSubmit, currentUserName, isEd
             {isEditing ? "Update your name or add more preset habits to track." : "Let's get you set up. First, what should we call you?"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="userName">Your Name</Label>
@@ -81,6 +79,7 @@ export function SetupModal({ open, onOpenChange, onSubmit, currentUserName, isEd
               <div className="space-y-3">
                 {PRESET_HABITS.map((habit) => {
                   const isSelected = selectedHabits.some(sh => sh.title === habit.title);
+                  const IconComponent = HABIT_LUCIDE_ICONS_LIST.find(i => i.name === habit.icon)?.icon;
                   return (
                     <div
                       key={habit.title}
@@ -96,7 +95,7 @@ export function SetupModal({ open, onOpenChange, onSubmit, currentUserName, isEd
                         onCheckedChange={(checked) => handleToggleHabit(habit, !!checked)}
                         aria-label={`Select ${habit.title}`}
                       />
-                      {habit.icon && <span className="text-lg">{habit.icon}</span>}
+                      {IconComponent && <IconComponent className="w-5 h-5 text-foreground" />}
                       <div className="flex-1">
                         <label
                           htmlFor={`habit-${habit.title.replace(/\s+/g, '-')}`}
