@@ -20,10 +20,11 @@ export function XPDisplay({ xp, level, progressToNextLevel, currentLevelXpDispla
         <span className="text-lg font-semibold">Level {level}</span>
       </div>
       <Progress value={progressToNextLevel} className="w-full h-2.5 mb-1 [&>div]:bg-primary" />
-      <div className="text-xs text-muted-foreground flex justify-between items-center">
-        <span>Total XP: {xp.toLocaleString()}</span>
+      <div className="text-xs text-muted-foreground flex justify-end items-center">
+        {/* Removed Total XP display from here */}
         <span>{currentLevelXpDisplay.toLocaleString()} / {nextLevelXpThresholdDisplay === Infinity ? 'MAX' : nextLevelXpThresholdDisplay.toLocaleString()} XP</span>
       </div>
     </div>
   );
 }
+
