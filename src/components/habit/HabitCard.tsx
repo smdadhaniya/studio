@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Habit, DailyProgress } from '@/lib/types';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProgressGrid } from './ProgressGrid';
 import { Flame, CheckCircle, XCircle, Edit3, Trash2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { getTodayDateString, isSameDay } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
@@ -27,7 +29,10 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
   const todayProgress = useMemo(() => progress.find(p => isSameDay(p.date, todayStr)), [progress, todayStr]);
   const isCompletedToday = todayProgress?.completed === true;
 
-  const IconComponent = habit.icon && typeof habit.icon !== 'string' ? habit.icon : Flame;
+  // Ensure IconComponent is always a valid React component (function).
+  // If habit.icon is not a function (e.g., it's a string, undefined, or a plain object from localStorage), default to Flame.
+  const IconComponent: LucideIcon = typeof habit.icon === 'function' ? habit.icon : Flame;
+  
   const cardColor = habit.color || HABIT_COLORS[parseInt(habit.id.slice(-2), 16) % HABIT_COLORS.length];
 
 
@@ -52,7 +57,7 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
-                {typeof IconComponent !== 'string' && <IconComponent className="w-7 h-7" />}
+                <IconComponent className="w-7 h-7" />
                 <CardTitle className="text-xl font-semibold">{habit.title}</CardTitle>
             </div>
             <div className="flex items-center gap-1 text-lg font-medium">
