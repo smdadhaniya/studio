@@ -29,7 +29,7 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
   const isCompletedToday = todayProgress?.completed === true;
 
   const IconComponent: LucideIcon = typeof habit.icon === 'function' ? habit.icon : Flame;
-  
+
   const habitBaseColor = habit.color || HABIT_COLORS[parseInt(habit.id.slice(-2), 16) % HABIT_COLORS.length];
   const iconColorClass = habitBaseColor.startsWith('bg-') ? habitBaseColor.replace('bg-', 'text-') : 'text-primary';
 
@@ -45,44 +45,44 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
   };
 
   const handleMissed = () => {
-    onToggleComplete(habit.id, todayStr); 
+    onToggleComplete(habit.id, todayStr);
   };
 
   return (
     <div className={cn(
-      "flex flex-col sm:flex-row items-stretch sm:items-center p-3 sm:p-4 border rounded-lg shadow-sm gap-3 sm:gap-4",
+      "flex flex-col sm:flex-row items-stretch sm:items-center p-2 sm:p-3 border rounded-lg shadow-sm gap-2 sm:gap-3", /* Reduced padding and gap */
       "bg-card text-card-foreground"
     )}>
 
       {/* Left Section: Icon, Title, Description */}
       <div className="flex-shrink-0 sm:w-auto sm:max-w-[20%] md:max-w-[25%] space-y-1">
         <div className="flex items-center gap-2">
-          <IconComponent className={cn("w-5 h-5 sm:w-6 sm:h-6", iconColorClass)} />
-          <h3 className="font-semibold text-lg truncate" title={habit.title}>{habit.title}</h3> {/* text-base sm:text-lg to text-lg (18px) */}
+          <IconComponent className={cn("w-4 h-4 sm:w-5 sm:h-5", iconColorClass)} /> {/* Reduced icon size */}
+          <h3 className="font-semibold text-lg truncate" title={habit.title}>{habit.title}</h3>
         </div>
         {habit.description && (
-          <p className="text-sm text-muted-foreground hidden md:block truncate" title={habit.description}> {/* text-xs to text-sm (14px) */}
+          <p className="text-sm text-muted-foreground hidden md:block truncate" title={habit.description}>
             {habit.description}
           </p>
         )}
         <div className="flex sm:hidden gap-1 pt-1"> {/* Mobile Edit/Delete */}
-            <Button onClick={() => onEdit(habit)} variant="ghost" size="sm" className="text-sm p-1 h-auto"> {/* text-xs to text-sm (14px) */}
+            <Button onClick={() => onEdit(habit)} variant="ghost" size="sm" className="text-sm p-1 h-auto">
                 <Edit3 className="w-3 h-3 mr-1" /> Edit
             </Button>
-            <Button onClick={() => onDelete(habit.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive text-sm p-1 h-auto"> {/* text-xs to text-sm (14px) */}
+            <Button onClick={() => onDelete(habit.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive text-sm p-1 h-auto">
                 <Trash2 className="w-3 h-3 mr-1" /> Delete
             </Button>
         </div>
       </div>
 
       {/* Middle Section: Progress Grid */}
-      <div className="flex-grow min-w-0"> 
+      <div className="flex-grow min-w-0">
         <ProgressGrid progress={progress} habitColor={habitBaseColor} />
       </div>
 
       {/* Right Section: Streak, Value Input, Actions */}
-      <div className="flex-shrink-0 sm:w-auto sm:max-w-[30%] md:max-w-[25%] flex flex-col items-start sm:items-end gap-2 mt-2 sm:mt-0">
-        <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground"> {/* text-xs sm:text-sm to text-sm (14px) */}
+      <div className="flex-shrink-0 sm:w-auto sm:max-w-[30%] md:max-w-[25%] flex flex-col items-start sm:items-end gap-1.5 mt-2 sm:mt-0"> {/* Reduced gap */}
+        <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
           <Flame className="w-4 h-4 text-orange-400" />
           <span>{streak} Day Streak</span>
         </div>
@@ -93,22 +93,22 @@ export function HabitCard({ habit, progress, streak, onToggleComplete, onEdit, o
             placeholder="Value"
             value={measurableValue}
             onChange={(e) => setMeasurableValue(e.target.value)}
-            className="h-8 text-sm w-full sm:max-w-[100px]" /* Ensure text-sm (14px) */
+            className="h-8 text-sm w-full sm:max-w-[90px]" /* Reduced max-width */
           />
         )}
 
         <div className="flex gap-2 w-full sm:w-auto justify-start sm:justify-end">
           {!isCompletedToday ? (
-            <Button onClick={handleComplete} size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 text-sm flex-grow sm:flex-grow-0"> {/* text-xs to text-sm (14px) */}
+            <Button onClick={handleComplete} size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-7 text-sm px-2.5 py-1 flex-grow sm:flex-grow-0"> {/* Reduced height & padding */}
               <CheckCircle className="w-3 h-3 mr-1" /> Mark Done
             </Button>
           ) : (
-            <Button onClick={handleComplete} variant="outline" size="sm" className="h-8 text-sm border-green-500 text-green-600 hover:bg-green-50 flex-grow sm:flex-grow-0"> {/* text-xs to text-sm (14px) */}
+            <Button onClick={handleComplete} variant="outline" size="sm" className="h-7 text-sm px-2.5 py-1 border-green-500 text-green-600 hover:bg-green-50 flex-grow sm:flex-grow-0"> {/* Reduced height & padding */}
               <CheckCircle className="w-3 h-3 mr-1 text-green-500" /> Done!
             </Button>
           )}
           {isCompletedToday && (
-             <Button onClick={handleMissed} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-sm flex-grow sm:flex-grow-0"> {/* text-xs to text-sm (14px) */}
+             <Button onClick={handleMissed} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-7 text-sm px-2.5 py-1 flex-grow sm:flex-grow-0"> {/* Reduced height & padding */}
                 <XCircle className="w-3 h-3 mr-1" /> Undone
             </Button>
           )}
