@@ -9,7 +9,7 @@ export interface Habit {
   description: string;
   trackingFormat: HabitTrackingFormat;
   createdAt: string; // ISO date string
-  color?: string; // Optional color for the habit card
+  color?: string; 
   icon?: string; // Lucide Icon name (string) or undefined
 }
 
@@ -28,7 +28,7 @@ export interface UserProfile {
   level: number;
   unlockedBadgeIds: string[];
   userName: string;
-  hasCompletedSetup?: boolean; // Added to track initial setup
+  hasCompletedSetup: boolean; // Changed from optional to required
 }
 
 export interface Badge {
@@ -41,7 +41,7 @@ export interface Badge {
   xpReward?: number;
 }
 
-// For preset habits in the setup modal
+// For preset habits in the setup modal and create habit modal
 export interface PresetHabitFormData {
   title: string;
   description: string;

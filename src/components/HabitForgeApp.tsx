@@ -40,7 +40,7 @@ export default function HabitForgeApp() {
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = undefined; // If icon name from storage is not in our list, treat as no icon
+        iconName = undefined; 
       }
       return {
         ...h,
@@ -70,49 +70,77 @@ export default function HabitForgeApp() {
   const handleSetupSubmit = (name: string, selectedPresetsData: PresetHabitFormData[]) => {
     setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
 
-    const habitsToAdd: Habit[] = [];
-    selectedPresetsData.forEach((preset) => {
-        const existingHabitByTitle = habits.find(h => h.title === preset.title);
-        if (!existingHabitByTitle) { // Only add if no habit with the same title exists
-            habitsToAdd.push({
-                id: crypto.randomUUID(),
-                createdAt: new Date().toISOString(),
-                title: preset.title,
-                description: preset.description,
-                trackingFormat: preset.trackingFormat,
-                icon: preset.icon, // This is the icon name string from presets
-                color: HABIT_COLORS[(habits.length + habitsToAdd.length) % HABIT_COLORS.length],
-            });
-        }
-    });
+    // Only add preset habits if this is the initial setup (not just editing name)
+    // This check relies on isEditProfileModalOpen being false during initial setup.
+    if (!isEditProfileModalOpen || !userProfile.hasCompletedSetup) {
+        const habitsToAdd: Habit[] = [];
+        selectedPresetsData.forEach((preset) => {
+            const existingHabitByTitle = habits.find(h => h.title === preset.title);
+            if (!existingHabitByTitle) {
+                habitsToAdd.push({
+                    id: crypto.randomUUID(),
+                    createdAt: new Date().toISOString(),
+                    title: preset.title,
+                    description: preset.description,
+                    trackingFormat: preset.trackingFormat,
+                    icon: preset.icon, 
+                    color: HABIT_COLORS[(habits.length + habitsToAdd.length) % HABIT_COLORS.length],
+                });
+            }
+        });
 
-    if (habitsToAdd.length > 0) {
-      setHabits(prev => [...prev, ...habitsToAdd]);
+        if (habitsToAdd.length > 0) {
+          setHabits(prev => [...prev, ...habitsToAdd]);
+          toast({ title: `Profile updated for ${name}!`, description: `${habitsToAdd.length} new habit(s) added.` });
+        } else {
+          toast({ title: `Profile updated for ${name}!`, description: "No new habits added from presets." });
+        }
+    } else {
+        toast({ title: `Profile name updated to ${name}!` });
     }
     
-    toast({ title: `Profile updated for ${name}!`, description: habitsToAdd.length > 0 ? `${habitsToAdd.length} new habit(s) added.` : "No new habits added." });
     setIsSetupModalOpen(false);
     setIsEditProfileModalOpen(false);
   };
 
-  const handleHabitFormSubmit = (data: HabitFormData) => {
-    const newHabit: Habit = {
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      ...data,
-      // icon: data.icon, // data from form no longer has .icon
-      color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
-    };
-    setHabits(prev => [...prev, newHabit]);
+  const handleHabitFormSubmit = (data: HabitFormData | PresetHabitFormData[]) => {
+    if (Array.isArray(data)) {
+      // Handling an array of PresetHabitFormData
+      const habitsToAdd: Habit[] = data
+        .filter(preset => !habits.some(h => h.title === preset.title)) // Ensure no duplicates by title
+        .map((preset, indexOffset) => ({
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+          title: preset.title,
+          description: preset.description,
+          trackingFormat: preset.trackingFormat,
+          icon: preset.icon,
+          color: HABIT_COLORS[(habits.length + indexOffset) % HABIT_COLORS.length],
+      }));
+
+      if (habitsToAdd.length > 0) {
+        setHabits(prev => [...prev, ...habitsToAdd]);
+        toast({ title: `${habitsToAdd.length} Preset Habit(s) Added!`, description: `Successfully added new habits from presets.` });
+      } else {
+        toast({ title: "No New Habits Added", description: "Selected presets might already exist." });
+      }
+    } else {
+      // Handling a single HabitFormData (custom habit)
+      const newHabit: Habit = {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        ...data, // data here is HabitFormData
+        icon: undefined, // No icon for custom habits from this form by default
+        color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
+      };
+      setHabits(prev => [...prev, newHabit]);
+      toast({ title: "Habit Tracked!", description: `"${newHabit.title}" is now being tracked.` });
+    }
     setIsCreateHabitModalOpen(false);
     setEditingHabit(null);
-    toast({ title: "Habit Tracked!", description: `"${newHabit.title}" is now being tracked.` });
   };
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
-     // When updating, if data.icon is not present (which it won't be from the form),
-     // we want to preserve the existing icon, or remove it if the form explicitly passes undefined.
-     // Since the form won't pass an icon, {...h, ...data} will effectively remove the icon.
      setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...data, icon: undefined, color: data.color || h.color } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -162,8 +190,8 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         if (entryIndex !== -1) { 
             newCompletedStatusForEntry = !currentHabitSpecificProgress[entryIndex].completed;
             newValueForEntry = newCompletedStatusForEntry ? (value !== undefined ? value : currentHabitSpecificProgress[entryIndex].value) : undefined;
-             if (habit.trackingFormat === 'yes/no'){
-                 newValueForEntry = undefined; // yes/no habits don't store value
+             if (habit.trackingFormat === 'yes/no' || !newCompletedStatusForEntry){ // also clear value if unchecking
+                 newValueForEntry = undefined; 
             }
         } else { 
             newCompletedStatusForEntry = true;
@@ -221,7 +249,7 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
           toast({ title: "AI Coach Says:", description: aiMessage.message, duration: 7000 });
         } catch (error) {
           console.error("Error generating motivational message:", error);
-          toast({ title: "AI Coach Offline", description: "Keep up the great work!", variant: "destructive" });
+          // toast({ title: "AI Coach Offline", description: "Keep up the great work!", variant: "destructive" });
         }
       }
 
@@ -256,7 +284,7 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         open={isSetupModalOpen}
         onOpenChange={setIsSetupModalOpen}
         onSubmit={handleSetupSubmit}
-        isEditing={false}
+        isEditing={false} // Explicitly false for initial setup
       />
     );
   }
@@ -292,7 +320,7 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
                 <Trash2 className="w-4 h-4 mr-2" /> Delete All
             </Button>
             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
-              <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
+              <PlusCircle className="w-5 h-5 mr-2" /> Add New Habit
             </Button>
         </div>
       </header>
@@ -322,7 +350,7 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
       <CreateHabitModal
         open={isCreateHabitModalOpen}
         onOpenChange={setIsCreateHabitModalOpen}
-        onHabitCreate={handleHabitFormSubmit}
+        onHabitCreate={handleHabitFormSubmit} // Can now handle both custom and preset[]
         editingHabit={editingHabit}
         onHabitUpdate={handleHabitUpdate}
       />
@@ -332,7 +360,7 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         onOpenChange={isEditProfileModalOpen ? setIsEditProfileModalOpen : setIsSetupModalOpen}
         onSubmit={handleSetupSubmit}
         currentUserName={userProfile.userName}
-        isEditing={isEditProfileModalOpen || userProfile.hasCompletedSetup}
+        isEditing={isEditProfileModalOpen || (userProfile.hasCompletedSetup && !isSetupModalOpen)} // True if editing profile OR initial setup is done and not in initial setup mode
       />
 
       <main>
