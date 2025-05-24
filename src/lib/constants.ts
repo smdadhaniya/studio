@@ -4,7 +4,7 @@ import {
   Settings, BookOpen, Droplet, Dumbbell, Brain, Bed, Apple, Wrench, AlarmClock, GlassWater,
   PenSquare, CalendarDays, Headphones, Users, Smartphone, Sparkles, HeartHandshake, Lightbulb,
   DollarSign, Palette, Smile, Star, Sunrise, TrendingUp, Zap, Shield, CalendarCheck, Trophy,
-  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity // Added Activity for wider selection
+  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity
 } from 'lucide-react';
 
 
@@ -40,7 +40,7 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Palette", icon: Palette },
     { name: "Pen Square", icon: PenSquare },
     { name: "Line Chart", icon: LineChart },
-    { name: "Music Note (fallback)", icon: Film },
+    { name: "Music Note (fallback)", icon: Film }, // Note: Film is used here as a fallback example
     { name: "Droplet", icon: Droplet },
     { name: "Wrench", icon: Wrench },
     { name: "Alarm Clock", icon: AlarmClock },
@@ -60,29 +60,29 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "BarChartBig", icon: BarChartBig },
     { name: "Award", icon: Award },
     { name: "Gem", icon: Gem },
-    { name: "Activity", icon: Activity }, // Added for more options
+    { name: "Activity", icon: Activity },
 ];
 
 
 export const PRESET_HABITS: PresetHabitFormData[] = [
   { title: 'Drink 8 glasses of water', description: 'Stay hydrated throughout the day.', trackingFormat: 'yes/no', icon: 'Droplet' },
-  { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'yes/no', icon: 'BookOpen' },
+  { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'yes/no', icon: 'Book Open' },
   { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'yes/no', icon: 'Dumbbell' },
   { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'yes/no', icon: 'Brain' },
   { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: 'Bed' },
   { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', icon: 'Apple' },
   { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'yes/no', icon: 'Wrench' },
-  { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: 'AlarmClock' },
-  { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: 'GlassWater' },
-  { title: 'Write in a journal', description: 'Reflect on your day, thoughts, and feelings.', trackingFormat: 'yes/no', icon: 'PenSquare' },
-  { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: 'CalendarDays' },
+  { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: 'Alarm Clock' },
+  { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: 'Glass Water' },
+  { title: 'Write in a journal', description: 'Reflect on your day, thoughts, and feelings.', trackingFormat: 'yes/no', icon: 'Pen Square' },
+  { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: 'Calendar Days' },
   { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'yes/no', icon: 'Headphones' },
   { title: 'Connect with a loved one', description: 'Call or spend quality time.', trackingFormat: 'yes/no', icon: 'Users' },
   { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', icon: 'Smartphone' },
   { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'yes/no', icon: 'Sparkles' },
-  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: 'HeartHandshake' },
+  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: 'Heart Handshake' }, // Corrected: Added space
   { title: 'Work on a personal project', description: 'Dedicate time to your passions.', trackingFormat: 'yes/no', icon: 'Lightbulb' },
-  { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'DollarSign' },
+  { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'Dollar Sign' }, // Corrected: Added space
   { title: 'Do something creative', description: 'Painting, writing, music, etc.', trackingFormat: 'yes/no', icon: 'Palette' },
   { title: 'Compliment someone', description: 'Spread positivity and kindness.', trackingFormat: 'yes/no', icon: 'Smile' },
 ];
@@ -93,7 +93,7 @@ export const BADGES: Badge[] = [
     id: 'first_completion',
     name: 'First Step',
     description: 'Complete a habit for the first time.',
-    icon: 'Star', // Ensure 'Star' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Star',
     milestoneType: 'totalCompletions',
     milestoneValue: 1,
     xpReward: 5,
@@ -102,7 +102,7 @@ export const BADGES: Badge[] = [
     id: 'dedicated_start',
     name: 'Dedicated Start',
     description: 'Complete any habit 5 times.',
-    icon: 'Sunrise', // Ensure 'Sunrise' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Sunrise',
     milestoneType: 'totalCompletions',
     milestoneValue: 5,
     xpReward: 25,
@@ -111,7 +111,7 @@ export const BADGES: Badge[] = [
     id: 'consistent_performer',
     name: 'Consistent Performer',
     description: 'Achieve a 3-day streak on any habit.',
-    icon: 'TrendingUp', // Ensure 'TrendingUp' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'TrendingUp',
     milestoneType: 'streak',
     milestoneValue: 3,
     xpReward: 30,
@@ -120,7 +120,7 @@ export const BADGES: Badge[] = [
     id: '7_day_streak',
     name: 'Week Warrior',
     description: 'Maintain a habit streak for 7 days.',
-    icon: 'Zap', // Ensure 'Zap' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Zap',
     milestoneType: 'streak',
     milestoneValue: 7,
     xpReward: 50,
@@ -129,7 +129,7 @@ export const BADGES: Badge[] = [
     id: 'habit_committed',
     name: 'Committed',
     description: 'Log 15 completions for any single habit.',
-    icon: 'Shield', // Ensure 'Shield' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Shield',
     milestoneType: 'totalCompletions',
     milestoneValue: 15,
     xpReward: 75,
@@ -138,7 +138,7 @@ export const BADGES: Badge[] = [
     id: 'perfect_week',
     name: 'Perfect Week',
     description: 'Complete a habit every day for a full week (7 completions).',
-    icon: 'CalendarCheck', // Ensure 'CalendarCheck' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'CalendarCheck',
     milestoneType: 'totalCompletions',
     milestoneValue: 7,
     xpReward: 60,
@@ -147,7 +147,7 @@ export const BADGES: Badge[] = [
     id: '30_day_streak',
     name: 'Month Master',
     description: 'Maintain a habit streak for 30 days.',
-    icon: 'Trophy', // Ensure 'Trophy' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Trophy',
     milestoneType: 'streak',
     milestoneValue: 30,
     xpReward: 200,
@@ -156,7 +156,7 @@ export const BADGES: Badge[] = [
     id: 'power_user',
     name: 'Power User',
     description: 'Log 50 total completions across all habits.',
-    icon: 'BarChartBig', // Ensure 'BarChartBig' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'BarChartBig', // Corrected from 'Activity' for consistency, BarChartBig is already imported
     milestoneType: 'totalCompletions',
     milestoneValue: 50,
     xpReward: 100,
@@ -165,7 +165,7 @@ export const BADGES: Badge[] = [
     id: 'level_5',
     name: 'Level 5 Reached',
     description: 'Reach Level 5 in your habit journey.',
-    icon: 'Award', // Ensure 'Award' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Award',
     milestoneType: 'level',
     milestoneValue: 5,
     xpReward: 100,
@@ -174,7 +174,7 @@ export const BADGES: Badge[] = [
     id: 'level_10_hero',
     name: 'Level 10 Hero',
     description: 'Reach Level 10 in your habit journey.',
-    icon: 'Gem', // Ensure 'Gem' is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'Gem',
     milestoneType: 'level',
     milestoneValue: 10,
     xpReward: 150,
@@ -182,3 +182,4 @@ export const BADGES: Badge[] = [
 ];
 
 export const MAX_PROGRESS_DAYS = 30;
+
