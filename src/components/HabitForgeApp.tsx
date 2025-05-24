@@ -24,7 +24,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -355,9 +355,21 @@ export default function HabitForgeApp() {
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-lg font-bold text-primary flex items-center">
-            <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Track
-        </h1>
+        <div className="flex items-center gap-2">
+            <Flame className="w-10 h-10 mr-1 text-primary" />
+            <h1 className="text-lg font-bold text-primary">
+                Habit Track
+            </h1>
+            <Button
+                variant="ghost"
+                size="icon"
+                className="text-primary hover:text-primary/80 w-8 h-8 ml-1"
+                onClick={() => alert('Bookmark feature coming soon!')}
+                aria-label="Bookmark"
+            >
+                <Bookmark className="w-5 h-5" />
+            </Button>
+        </div>
         <div className="flex items-center gap-3">
             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
               <PlusCircle className="w-5 h-5 mr-2" /> Add New Habit
@@ -463,5 +475,7 @@ export default function HabitForgeApp() {
     </div>
   );
 }
+
+    
 
     
