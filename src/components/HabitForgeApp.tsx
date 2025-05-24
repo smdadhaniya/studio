@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Habit, HabitProgress, UserProfile, PresetHabitFormData } from '@/lib/types';
+import type { Habit, HabitProgress, UserProfile, PresetHabitFormData, DailyProgress } from '@/lib/types';
 import type { HabitFormData } from '@/components/habit/HabitForm';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { loadState, saveState } from '@/lib/localStorageUtils';
@@ -15,7 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -40,7 +40,7 @@ export default function HabitForgeApp() {
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = HABIT_LUCIDE_ICONS_LIST[0]?.name || undefined; 
+        iconName = undefined; // If icon name from storage is not in our list, treat as no icon
       }
       return {
         ...h,
@@ -61,11 +61,7 @@ export default function HabitForgeApp() {
     if (!loadedProfile.hasCompletedSetup) {
       setIsSetupModalOpen(true);
     }
-
-    if (Notification.permission === 'default') {
-        // requestPermission(); // User explicitly clicks button for this now
-    }
-  }, []); // Removed requestPermission from deps as it's stable
+  }, []);
 
   useEffect(() => { saveState(HABITS_KEY, habits); }, [habits]);
   useEffect(() => { saveState(PROGRESS_KEY, allProgress); }, [allProgress]);
@@ -77,14 +73,14 @@ export default function HabitForgeApp() {
     const habitsToAdd: Habit[] = [];
     selectedPresetsData.forEach((preset) => {
         const existingHabitByTitle = habits.find(h => h.title === preset.title);
-        if (!existingHabitByTitle) {
+        if (!existingHabitByTitle) { // Only add if no habit with the same title exists
             habitsToAdd.push({
                 id: crypto.randomUUID(),
                 createdAt: new Date().toISOString(),
                 title: preset.title,
                 description: preset.description,
                 trackingFormat: preset.trackingFormat,
-                icon: preset.icon, // This is the icon name string
+                icon: preset.icon, // This is the icon name string from presets
                 color: HABIT_COLORS[(habits.length + habitsToAdd.length) % HABIT_COLORS.length],
             });
         }
@@ -104,7 +100,7 @@ export default function HabitForgeApp() {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       ...data,
-      icon: data.icon, // Icon name string
+      // icon: data.icon, // data from form no longer has .icon
       color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
@@ -114,7 +110,10 @@ export default function HabitForgeApp() {
   };
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
-     setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...data, icon: data.icon, color: data.color || h.color } : h));
+     // When updating, if data.icon is not present (which it won't be from the form),
+     // we want to preserve the existing icon, or remove it if the form explicitly passes undefined.
+     // Since the form won't pass an icon, {...h, ...data} will effectively remove the icon.
+     setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...data, icon: undefined, color: data.color || h.color } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
      toast({ title: "Habit Updated!", description: `"${data.title}" has been updated.` });
@@ -138,25 +137,37 @@ export default function HabitForgeApp() {
     }
   };
 
+  const handleDeleteAllHabits = () => {
+    if (window.confirm("Are you sure you want to delete ALL habits? This action cannot be undone.")) {
+      if (window.confirm("SECOND CONFIRMATION: This will permanently remove all your habits and progress. Are you absolutely sure?")) {
+        setHabits([]);
+        setAllProgress({});
+        toast({ title: "All Habits Deleted", description: "Your habit list and progress have been cleared.", variant: "destructive" });
+      }
+    }
+  };
+
 const handleToggleComplete = async (habitId: string, date: string, value?: number) => {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
 
-    const oldStreak = calculateStreak(habitId, allProgress); // Streak BEFORE update
+    const oldStreak = calculateStreak(habitId, allProgress);
 
-    // Determine the state of the habit *after* this toggle operation
     const newAllProgressAfterToggle = (() => {
         const currentHabitSpecificProgress = allProgress[habitId] || [];
         const entryIndex = currentHabitSpecificProgress.findIndex(p => p.date === date);
         let newCompletedStatusForEntry: boolean;
         let newValueForEntry: number | undefined;
 
-        if (entryIndex !== -1) { // Existing entry
+        if (entryIndex !== -1) { 
             newCompletedStatusForEntry = !currentHabitSpecificProgress[entryIndex].completed;
-            newValueForEntry = newCompletedStatusForEntry ? value : undefined;
-        } else { // New entry
+            newValueForEntry = newCompletedStatusForEntry ? (value !== undefined ? value : currentHabitSpecificProgress[entryIndex].value) : undefined;
+             if (habit.trackingFormat === 'yes/no'){
+                 newValueForEntry = undefined; // yes/no habits don't store value
+            }
+        } else { 
             newCompletedStatusForEntry = true;
-            newValueForEntry = value;
+            newValueForEntry = habit.trackingFormat === 'measurable' ? value : undefined;
         }
         
         let updatedHabitSpecificProgressList: DailyProgress[];
@@ -171,12 +182,10 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         return { ...allProgress, [habitId]: updatedHabitSpecificProgressList };
     })();
 
-    // The new completion status based on the definite new state
     const newCompletionStatus = (newAllProgressAfterToggle[habitId] || []).find(p => p.date === date)?.completed ?? false;
 
-    setAllProgress(newAllProgressAfterToggle); // Update the state
+    setAllProgress(newAllProgressAfterToggle); 
 
-    // Now use newAllProgressAfterToggle for all subsequent logic
     if (newCompletionStatus) {
       let newXp = userProfile.xp + XP_PER_COMPLETION;
       const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
@@ -185,7 +194,7 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
 
       const finalXp = profileWithBadges.xp;
       const { level: finalLevel } = calculateLevel(finalXp);
-      const oldLevel = userProfile.level; // Store old level for comparison
+      const oldLevel = userProfile.level; 
       setUserProfile({...profileWithBadges, level: finalLevel});
 
       toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
@@ -216,9 +225,9 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         }
       }
 
-    } else { // Habit marked as incomplete
+    } else { 
       const newStreak = calculateStreak(habitId, newAllProgressAfterToggle); 
-      if (oldStreak > 0 && newStreak < oldStreak) { // A streak was broken
+      if (oldStreak > 0 && newStreak < oldStreak) { 
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -231,9 +240,6 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
           console.error("Error generating empathetic message:", error);
         }
       }
-       // If XP was gained for this completion, it should be removed.
-       // This part is complex: need to know if XP was awarded for *this specific instance*.
-       // For simplicity, current logic doesn't "claw back" XP. This could be a future enhancement.
     }
   };
 
@@ -275,6 +281,15 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
               aria-label="Edit Profile"
             >
               <Settings className="w-4 h-4 mr-2" /> Edit Profile
+            </Button>
+             <Button
+                onClick={handleDeleteAllHabits}
+                variant="destructive"
+                size="sm"
+                className="text-sm"
+                aria-label="Delete All Habits"
+            >
+                <Trash2 className="w-4 h-4 mr-2" /> Delete All
             </Button>
             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
               <PlusCircle className="w-5 h-5 mr-2" /> Track New Habit
@@ -334,5 +349,3 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
     </div>
   );
 }
-    
-
