@@ -8,9 +8,10 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label'; // Added import
 import { PRESET_HABITS, HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button'; // Added Button import
+import { Button } from '@/components/ui/button';
 
 interface CreateHabitModalProps {
   onHabitCreate: (data: HabitFormData | PresetHabitFormData[]) => void;
@@ -166,3 +167,5 @@ export function CreateHabitModal({
     </Dialog>
   );
 }
+
+    
