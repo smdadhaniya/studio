@@ -10,13 +10,21 @@ import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
 import { SetupModal } from '@/components/user/SetupModal';
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
-import { InputValueModal } from '@/components/habit/InputValueModal'; // Added
+import { InputValueModal } from '@/components/habit/InputValueModal';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -34,7 +42,6 @@ export default function HabitForgeApp() {
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [displayedMonth, setDisplayedMonth] = useState(startOfMonth(new Date()));
 
-  // State for InputValueModal
   const [isInputValueModalOpen, setIsInputValueModalOpen] = useState(false);
   const [inputValueModalContext, setInputValueModalContext] = useState<{ habitId: string, date: string, habit: Habit, currentValue?: number } | null>(null);
 
@@ -46,11 +53,11 @@ export default function HabitForgeApp() {
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = undefined;
+        iconName = undefined; // Clear invalid icon name
       }
       return {
         ...h,
-        icon: iconName,
+        icon: iconName, // Store only the name
         color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color))
                ? h.color
                : HABIT_COLORS[index % HABIT_COLORS.length],
@@ -144,7 +151,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon,
+        icon: data.icon, // Icon name string or undefined
         color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
       };
       setHabits(prev => [...prev, newHabit]);
@@ -162,7 +169,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon,
+        icon: data.icon, // Icon name string or undefined
       } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -211,7 +218,6 @@ export default function HabitForgeApp() {
       toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
     }
 
-    // Check for badges and level changes based on the new state
     const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
       userProfileAfterToggle, habits, updatedProgress
     );
@@ -245,9 +251,9 @@ export default function HabitForgeApp() {
       } catch (error) {
         console.error("Error generating motivational message:", error);
       }
-    } else if (!wasJustCompleted) { // Habit was marked incomplete
+    } else if (!wasJustCompleted) {
       const streakAfterUpdate = calculateStreak(habit.id, updatedProgress);
-      if (oldStreak > 0 && streakAfterUpdate < oldStreak) { // Streak was broken
+      if (oldStreak > 0 && streakAfterUpdate < oldStreak) {
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -271,7 +277,6 @@ export default function HabitForgeApp() {
     const isNowCompleted = submittedValue !== undefined && submittedValue > 0;
     const newValueForEntry = isNowCompleted ? submittedValue : undefined;
 
-    // Create the new progress state first
     const newAllProgress = { ...allProgress };
     const habitSpecificProgress = newAllProgress[habitId] || [];
     const entryIndex = habitSpecificProgress.findIndex(p => p.date === date);
@@ -280,16 +285,15 @@ export default function HabitForgeApp() {
       newAllProgress[habitId] = habitSpecificProgress.map((p, i) =>
         i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
       );
-    } else if (isNowCompleted) { // Only add new entry if it's a completion
+    } else if (isNowCompleted) {
       newAllProgress[habitId] = [...habitSpecificProgress, { date, completed: true, value: newValueForEntry }];
     }
     if (newAllProgress[habitId]) {
         newAllProgress[habitId].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }
     
-    setAllProgress(newAllProgress); // Update progress state
+    setAllProgress(newAllProgress);
 
-    // Process effects with the new progress state
     await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, isNowCompleted);
 
     setIsInputValueModalOpen(false);
@@ -299,20 +303,19 @@ export default function HabitForgeApp() {
 
   const handleToggleComplete = async (habitId: string, date: string) => {
     const habit = habits.find(h => h.id === habitId);
-    if (!habit || habit.trackingFormat === 'measurable') {
-        // Measurable habits are handled by openInputValueModal and handleInputValueSubmit
+    if (!habit) return;
+
+    if (habit.trackingFormat === 'measurable') {
         const currentEntry = (allProgress[habitId] || []).find(p => p.date === date);
-        openInputValueModal(habit!, date, currentEntry?.value);
+        openInputValueModal(habit, date, currentEntry?.value);
         return;
     }
 
-    // For "yes/no" habits
     const currentProgressForHabit = allProgress[habitId] || [];
     const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
     const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
     const isNowCompleted = !wasPreviouslyCompleted;
 
-    // Create the new progress state first
     const newAllProgress = { ...allProgress };
     let updatedHabitSpecificProgressList: DailyProgress[];
     if (entryIndex !== -1) {
@@ -325,9 +328,8 @@ export default function HabitForgeApp() {
     updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     newAllProgress[habitId] = updatedHabitSpecificProgressList;
     
-    setAllProgress(newAllProgress); // Update progress state
+    setAllProgress(newAllProgress);
 
-    // Process effects with the new progress state
     await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, isNowCompleted);
   };
 
@@ -357,32 +359,43 @@ export default function HabitForgeApp() {
             <Flame className="w-10 h-10 mr-2 text-primary" /> Habit Track
         </h1>
         <div className="flex items-center gap-3">
-            {permission !== 'granted' && (
-              <Button onClick={requestPermission} variant="outline" size="sm" className="text-sm">
-                  <BellRing className="w-4 h-4 mr-2"/> Enable Notifications
-              </Button>
-            )}
-            <Button
-              onClick={() => setIsEditProfileModalOpen(true)}
-              variant="outline"
-              size="sm"
-              className="text-sm"
-              aria-label="Edit Profile"
-            >
-              <Settings className="w-4 h-4 mr-2" /> Edit Profile
-            </Button>
-             <Button
-                onClick={handleDeleteAllHabits}
-                variant="destructive"
-                size="sm"
-                className="text-sm"
-                aria-label="Delete All Habits"
-            >
-                <Trash2 className="w-4 h-4 mr-2" /> Delete All
-            </Button>
             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
               <PlusCircle className="w-5 h-5 mr-2" /> Add New Habit
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="text-sm w-9 h-9">
+                  <Settings className="w-5 h-5" />
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setIsEditProfileModalOpen(true)}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Edit Profile</span>
+                </DropdownMenuItem>
+                {permission !== 'granted' && (
+                  <DropdownMenuItem onSelect={requestPermission}>
+                    <BellRing className="mr-2 h-4 w-4" />
+                    <span>Enable Notifications</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onSelect={() => alert('Feedback form coming soon!')}>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  <span>Share Feedback</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={handleDeleteAllHabits}
+                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete All Habits</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </header>
 
@@ -440,8 +453,8 @@ export default function HabitForgeApp() {
           habits={habits}
           allProgress={allProgress}
           displayedMonth={displayedMonth}
-          onToggleComplete={handleToggleComplete} // For yes/no
-          onOpenInputValueModal={openInputValueModal} // For measurable
+          onToggleComplete={handleToggleComplete}
+          onOpenInputValueModal={openInputValueModal}
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
         />
@@ -450,3 +463,5 @@ export default function HabitForgeApp() {
     </div>
   );
 }
+
+    
