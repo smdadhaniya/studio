@@ -40,7 +40,7 @@ export default function HabitForgeApp() {
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = HABIT_LUCIDE_ICONS_LIST[0]?.name || undefined; // Fallback to first in list or undefined
+        iconName = HABIT_LUCIDE_ICONS_LIST[0]?.name || undefined; 
       }
       return {
         ...h,
@@ -63,31 +63,38 @@ export default function HabitForgeApp() {
     }
 
     if (Notification.permission === 'default') {
-        // requestPermission();
+        // requestPermission(); // User explicitly clicks button for this now
     }
-  }, [requestPermission]);
+  }, []); // Removed requestPermission from deps as it's stable
 
   useEffect(() => { saveState(HABITS_KEY, habits); }, [habits]);
   useEffect(() => { saveState(PROGRESS_KEY, allProgress); }, [allProgress]);
   useEffect(() => { saveState(USER_PROFILE_KEY, userProfile); }, [userProfile]);
 
-  const handleSetupSubmit = (name: string, selectedPresetHabits: PresetHabitFormData[]) => {
+  const handleSetupSubmit = (name: string, selectedPresetsData: PresetHabitFormData[]) => {
     setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
 
-    const newHabitsFromPresets: Habit[] = selectedPresetHabits.map((preset, index) => {
-      return {
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        title: preset.title,
-        description: preset.description,
-        trackingFormat: preset.trackingFormat,
-        icon: preset.icon,
-        color: HABIT_COLORS[(habits.length + index) % HABIT_COLORS.length],
-      };
+    const habitsToAdd: Habit[] = [];
+    selectedPresetsData.forEach((preset) => {
+        const existingHabitByTitle = habits.find(h => h.title === preset.title);
+        if (!existingHabitByTitle) {
+            habitsToAdd.push({
+                id: crypto.randomUUID(),
+                createdAt: new Date().toISOString(),
+                title: preset.title,
+                description: preset.description,
+                trackingFormat: preset.trackingFormat,
+                icon: preset.icon, // This is the icon name string
+                color: HABIT_COLORS[(habits.length + habitsToAdd.length) % HABIT_COLORS.length],
+            });
+        }
     });
 
-    setHabits(prev => [...prev, ...newHabitsFromPresets]);
-    toast({ title: "Welcome, " + name + "!", description: "Your Habit Track is ready." });
+    if (habitsToAdd.length > 0) {
+      setHabits(prev => [...prev, ...habitsToAdd]);
+    }
+    
+    toast({ title: `Profile updated for ${name}!`, description: habitsToAdd.length > 0 ? `${habitsToAdd.length} new habit(s) added.` : "No new habits added." });
     setIsSetupModalOpen(false);
     setIsEditProfileModalOpen(false);
   };
@@ -97,6 +104,7 @@ export default function HabitForgeApp() {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       ...data,
+      icon: data.icon, // Icon name string
       color: data.color || HABIT_COLORS[habits.length % HABIT_COLORS.length],
     };
     setHabits(prev => [...prev, newHabit]);
@@ -130,50 +138,54 @@ export default function HabitForgeApp() {
     }
   };
 
-  const handleToggleComplete = async (habitId: string, date: string, value?: number) => {
+const handleToggleComplete = async (habitId: string, date: string, value?: number) => {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
 
-    const oldStreak = calculateStreak(habitId, allProgress);
-    const wasCompleted = (allProgress[habitId] || []).find(p => p.date === date)?.completed;
+    const oldStreak = calculateStreak(habitId, allProgress); // Streak BEFORE update
 
-    setAllProgress(prev => {
-      const habitProgress = prev[habitId] || [];
-      const existingEntryIndex = habitProgress.findIndex(p => p.date === date);
-      let updatedHabitProgress: typeof habitProgress;
+    // Determine the state of the habit *after* this toggle operation
+    const newAllProgressAfterToggle = (() => {
+        const currentHabitSpecificProgress = allProgress[habitId] || [];
+        const entryIndex = currentHabitSpecificProgress.findIndex(p => p.date === date);
+        let newCompletedStatusForEntry: boolean;
+        let newValueForEntry: number | undefined;
 
-      if (existingEntryIndex !== -1) {
-        updatedHabitProgress = habitProgress.map((p, index) =>
-          index === existingEntryIndex ? { ...p, completed: !p.completed, value: !p.completed ? value : undefined } : p
-        );
-      } else {
-        updatedHabitProgress = [...habitProgress, { date, completed: true, value }];
-      }
-      updatedHabitProgress.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      return { ...prev, [habitId]: updatedHabitProgress };
-    });
+        if (entryIndex !== -1) { // Existing entry
+            newCompletedStatusForEntry = !currentHabitSpecificProgress[entryIndex].completed;
+            newValueForEntry = newCompletedStatusForEntry ? value : undefined;
+        } else { // New entry
+            newCompletedStatusForEntry = true;
+            newValueForEntry = value;
+        }
+        
+        let updatedHabitSpecificProgressList: DailyProgress[];
+        if (entryIndex !== -1) {
+            updatedHabitSpecificProgressList = currentHabitSpecificProgress.map((p, i) =>
+                i === entryIndex ? { ...p, completed: newCompletedStatusForEntry, value: newValueForEntry } : p
+            );
+        } else {
+            updatedHabitSpecificProgressList = [...currentHabitSpecificProgress, { date, completed: newCompletedStatusForEntry, value: newValueForEntry }];
+        }
+        updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        return { ...allProgress, [habitId]: updatedHabitSpecificProgressList };
+    })();
 
-    const newCompletionStatus = !wasCompleted;
-    const updatedProgressForStreak = { ...allProgress };
-    const tempHabitProgress = updatedProgressForStreak[habitId] ? [...updatedProgressForStreak[habitId]] : [];
-    const entryIndex = tempHabitProgress.findIndex(p => p.date === date);
-    if (entryIndex !== -1) {
-        tempHabitProgress[entryIndex] = { ...tempHabitProgress[entryIndex], completed: newCompletionStatus, value: newCompletionStatus ? value : undefined };
-    } else {
-        tempHabitProgress.push({ date, completed: newCompletionStatus, value });
-    }
-    tempHabitProgress.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    updatedProgressForStreak[habitId] = tempHabitProgress;
+    // The new completion status based on the definite new state
+    const newCompletionStatus = (newAllProgressAfterToggle[habitId] || []).find(p => p.date === date)?.completed ?? false;
 
+    setAllProgress(newAllProgressAfterToggle); // Update the state
 
+    // Now use newAllProgressAfterToggle for all subsequent logic
     if (newCompletionStatus) {
       let newXp = userProfile.xp + XP_PER_COMPLETION;
       const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
-        {...userProfile, xp: newXp}, habits, updatedProgressForStreak
+        {...userProfile, xp: newXp}, habits, newAllProgressAfterToggle 
       );
 
       const finalXp = profileWithBadges.xp;
       const { level: finalLevel } = calculateLevel(finalXp);
+      const oldLevel = userProfile.level; // Store old level for comparison
       setUserProfile({...profileWithBadges, level: finalLevel});
 
       toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
@@ -185,8 +197,8 @@ export default function HabitForgeApp() {
         });
       }
 
-      const newStreak = calculateStreak(habitId, updatedProgressForStreak);
-      const milestoneReached = newBadges.length > 0 || (newStreak > 0 && newStreak % 5 === 0) || (finalLevel > userProfile.level);
+      const newStreak = calculateStreak(habitId, newAllProgressAfterToggle); 
+      const milestoneReached = newBadges.length > 0 || (newStreak > 0 && newStreak % 5 === 0) || (finalLevel > oldLevel) || (oldStreak === 0 && newStreak === 1 && newCompletionStatus) ;
 
       if (milestoneReached) {
         try {
@@ -194,7 +206,7 @@ export default function HabitForgeApp() {
             habitName: habit.title,
             userName: userProfile.userName || DEFAULT_USER_NAME,
             streakLength: newStreak,
-            milestoneAchieved: newBadges.length > 0 ? newBadges[0].name : `Streak of ${newStreak}`,
+            milestoneAchieved: newBadges.length > 0 ? `badge: ${newBadges[0].name}` : (finalLevel > oldLevel ? `level ${finalLevel}` : `streak of ${newStreak}`),
             brokenStreak: false,
           });
           toast({ title: "AI Coach Says:", description: aiMessage.message, duration: 7000 });
@@ -204,9 +216,9 @@ export default function HabitForgeApp() {
         }
       }
 
-    } else {
-      const newStreak = calculateStreak(habitId, updatedProgressForStreak);
-      if (oldStreak > 0 && newStreak < oldStreak) {
+    } else { // Habit marked as incomplete
+      const newStreak = calculateStreak(habitId, newAllProgressAfterToggle); 
+      if (oldStreak > 0 && newStreak < oldStreak) { // A streak was broken
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -219,6 +231,9 @@ export default function HabitForgeApp() {
           console.error("Error generating empathetic message:", error);
         }
       }
+       // If XP was gained for this completion, it should be removed.
+       // This part is complex: need to know if XP was awarded for *this specific instance*.
+       // For simplicity, current logic doesn't "claw back" XP. This could be a future enhancement.
     }
   };
 
@@ -319,5 +334,5 @@ export default function HabitForgeApp() {
     </div>
   );
 }
-
     
+
