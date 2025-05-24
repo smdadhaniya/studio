@@ -5,7 +5,7 @@ import {
   PenSquare, CalendarDays, Headphones, Users, Smartphone, Sparkles, HeartHandshake, Lightbulb,
   DollarSign, Palette, Smile, Star, Sunrise, TrendingUp, Zap, Shield, CalendarCheck, Trophy,
   BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity,
-  Ruler // Added Ruler for measurable unit example if needed
+  Ruler
 } from 'lucide-react';
 
 
@@ -41,7 +41,7 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Palette", icon: Palette },
     { name: "Pen Square", icon: PenSquare },
     { name: "Line Chart", icon: LineChart },
-    { name: "Music Note (fallback)", icon: Film },
+    { name: "Film", icon: Film }, // Used as fallback for Music Note
     { name: "Droplet", icon: Droplet },
     { name: "Wrench", icon: Wrench },
     { name: "Alarm Clock", icon: AlarmClock },
@@ -64,24 +64,29 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Ruler", icon: Ruler },
 ];
 
+export const PREDEFINED_MEASUREMENT_UNITS: string[] = [
+  'pages', 'minutes', 'hours', 'km', 'miles', 'steps', 'times', 'servings', 
+  'glasses', 'reps', 'sets', 'kg', 'g', 'lbs', 'calls', 'tasks', 'words', 'lines of code', 'songs', 'chapters', 'units'
+];
+
 
 export const PRESET_HABITS: PresetHabitFormData[] = [
-  { title: 'Drink 8 glasses of water', description: 'Stay hydrated throughout the day.', trackingFormat: 'yes/no', icon: 'Droplet' },
-  { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'yes/no', icon: 'Book Open' },
-  { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'yes/no', icon: 'Dumbbell' },
-  { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'yes/no', icon: 'Brain' },
+  { title: 'Drink 8 glasses of water', description: 'Stay hydrated throughout the day.', trackingFormat: 'measurable', measurableUnit: 'glasses', targetCount: 8, icon: 'Droplet' },
+  { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Book Open' },
+  { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Dumbbell' },
+  { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 10, icon: 'Brain' },
   { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: 'Bed' },
-  { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', measurableUnit: 'servings', icon: 'Apple' },
-  { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'yes/no', icon: 'Wrench' },
+  { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', measurableUnit: 'servings', targetCount: 5, icon: 'Apple' },
+  { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 20, icon: 'Wrench' },
   { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: 'Alarm Clock' },
   { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: 'Glass Water' },
   { title: 'Write in a journal', description: 'Reflect on your day, thoughts, and feelings.', trackingFormat: 'yes/no', icon: 'Pen Square' },
   { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: 'Calendar Days' },
-  { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'yes/no', icon: 'Headphones' },
+  { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 15, icon: 'Headphones' },
   { title: 'Connect with a loved one', description: 'Call or spend quality time.', trackingFormat: 'yes/no', icon: 'Users' },
-  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', measurableUnit: 'minutes', icon: 'Smartphone' },
-  { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'yes/no', icon: 'Sparkles' },
-  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: 'Heart Handshake' },
+  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Smartphone' },
+  { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 15, icon: 'Sparkles' },
+  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'measurable', measurableUnit: 'times', targetCount: 3, icon: 'Heart Handshake' },
   { title: 'Work on a personal project', description: 'Dedicate time to your passions.', trackingFormat: 'yes/no', icon: 'Lightbulb' },
   { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'Dollar Sign' },
   { title: 'Do something creative', description: 'Painting, writing, music, etc.', trackingFormat: 'yes/no', icon: 'Palette' },
@@ -157,7 +162,7 @@ export const BADGES: Badge[] = [
     id: 'power_user',
     name: 'Power User',
     description: 'Log 50 total completions across all habits.',
-    icon: 'BarChartBig',
+    icon: 'BarChartBig', // Changed from Activity as BarChartBig is in HABIT_LUCIDE_ICONS_LIST
     milestoneType: 'totalCompletions',
     milestoneValue: 50,
     xpReward: 100,

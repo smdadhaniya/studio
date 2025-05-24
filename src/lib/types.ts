@@ -8,7 +8,8 @@ export interface Habit {
   title: string;
   description: string;
   trackingFormat: HabitTrackingFormat;
-  measurableUnit?: string; // Added for measurable habits
+  measurableUnit?: string;
+  targetCount?: number; // Added for measurable habits
   createdAt: string; // ISO date string
   color?: string;
   icon?: string; // Lucide Icon name (string) or undefined
@@ -47,7 +48,8 @@ export interface PresetHabitFormData {
   title: string;
   description: string;
   trackingFormat: HabitTrackingFormat;
-  measurableUnit?: string; // Added for measurable habits
+  measurableUnit?: string;
+  targetCount?: number; // Added for measurable habits
   icon: string; // Lucide Icon name (string)
 }
 

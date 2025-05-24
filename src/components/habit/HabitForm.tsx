@@ -11,24 +11,34 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HABIT_COLORS } from '@/lib/constants';
+import { HABIT_COLORS, PREDEFINED_MEASUREMENT_UNITS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 const habitFormSchemaBase = z.object({
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().max(500).optional(),
   trackingFormat: z.enum(['yes/no', 'measurable'], { required_error: "Tracking format is required" }),
+  targetCount: z.coerce.number().positive("Target count must be positive").optional(),
   measurableUnit: z.string().max(50).optional(),
   color: z.string().optional(),
 });
 
 const habitFormSchema = habitFormSchemaBase.superRefine((data, ctx) => {
-  if (data.trackingFormat === 'measurable' && (!data.measurableUnit || data.measurableUnit.trim() === '')) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Unit is required for measurable habits.",
-      path: ["measurableUnit"],
-    });
+  if (data.trackingFormat === 'measurable') {
+    if (!data.targetCount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Target count is required for measurable habits.",
+        path: ["targetCount"],
+      });
+    }
+    if (!data.measurableUnit || data.measurableUnit.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Unit is required for measurable habits.",
+        path: ["measurableUnit"],
+      });
+    }
   }
 });
 
@@ -47,7 +57,8 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
       title: initialData?.title || '',
       description: initialData?.description || '',
       trackingFormat: initialData?.trackingFormat || 'yes/no',
-      measurableUnit: initialData?.measurableUnit || '',
+      targetCount: initialData?.targetCount || undefined,
+      measurableUnit: initialData?.measurableUnit || (PREDEFINED_MEASUREMENT_UNITS.length > 0 ? PREDEFINED_MEASUREMENT_UNITS[0] : ''),
       color: initialData?.color || HABIT_COLORS[0],
     },
   });
@@ -96,8 +107,12 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
                   onValueChange={(value) => {
                     field.onChange(value);
                     if (value === 'yes/no') {
-                      form.setValue('measurableUnit', ''); // Clear unit if switching to yes/no
+                      form.setValue('measurableUnit', '');
+                      form.setValue('targetCount', undefined);
                       form.clearErrors('measurableUnit');
+                      form.clearErrors('targetCount');
+                    } else {
+                        form.setValue('measurableUnit', PREDEFINED_MEASUREMENT_UNITS.length > 0 ? PREDEFINED_MEASUREMENT_UNITS[0] : '');
                     }
                   }}
                   defaultValue={field.value}
@@ -123,19 +138,47 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
         />
 
         {trackingFormat === 'measurable' && (
-          <FormField
-            control={form.control}
-            name="measurableUnit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unit of Measurement</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., pages, minutes, km" {...field} className="text-sm"/>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name="targetCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Target Count</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 5, 30" {...field} 
+                           onChange={e => field.onChange(parseInt(e.target.value, 10) || undefined)} 
+                           className="text-sm"/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="measurableUnit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Unit of Measurement</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="text-sm">
+                        <SelectValue placeholder="Select a unit" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PREDEFINED_MEASUREMENT_UNITS.map((unit) => (
+                        <SelectItem key={unit} value={unit} className="text-sm">
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
         )}
 
         <FormField
@@ -146,13 +189,13 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
                 <FormLabel>Color (Optional)</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                     <SelectTrigger style={{ backgroundColor: field.value?.startsWith('bg-') ? undefined : field.value }} className={cn(field.value?.startsWith('bg-') ? field.value : '')}>
+                     <SelectTrigger style={{ backgroundColor: field.value?.startsWith('bg-') ? undefined : field.value }} className={cn(field.value?.startsWith('bg-') ? field.value : '', "text-sm")}>
                         <SelectValue placeholder="Select a color" />
                      </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {HABIT_COLORS.map((colorClass) => (
-                      <SelectItem key={colorClass} value={colorClass}>
+                      <SelectItem key={colorClass} value={colorClass} className="text-sm">
                         <div className="flex items-center gap-2">
                           <div className={cn("w-4 h-4 rounded-full border", colorClass)}></div>
                           <span>{colorClass.split('-')[1] || colorClass}</span>
