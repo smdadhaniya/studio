@@ -2,9 +2,9 @@
 "use client";
 
 import type { Habit, HabitProgress, DailyProgress } from '@/lib/types';
-import { useState, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDate, isToday, isPast, isFuture } from 'date-fns';
-import { ChevronLeft, ChevronRight, Edit3, Trash2, Check } from 'lucide-react';
+import { useMemo } from 'react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDate, isToday, isPast, isFuture } from 'date-fns';
+import { Edit3, Trash2, Check, GripVertical } from 'lucide-react'; // Added GripVertical for measurable
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants';
@@ -13,7 +13,8 @@ interface HabitRowProps {
   habit: Habit;
   habitDailyProgress: DailyProgress[];
   daysInMonth: Date[];
-  onToggleComplete: (habitId: string, date: string, value?: number) => void;
+  onToggleComplete: (habitId: string, date: string) => void; // Value removed, measurable handled by modal
+  onOpenInputValueModal: (habit: Habit, date: string, currentValue?: number) => void; // New prop
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
 }
@@ -23,6 +24,7 @@ function HabitRow({
   habitDailyProgress,
   daysInMonth,
   onToggleComplete,
+  onOpenInputValueModal,
   onEditHabit,
   onDeleteHabit,
 }: HabitRowProps) {
@@ -47,51 +49,63 @@ function HabitRow({
         const dayProgress = habitProgressMap.get(dateStr);
         const isCompleted = dayProgress?.completed === true;
 
-        let checkboxSquareBg = '';
-        let checkboxSquareBorder = '';
-        let contentColor = '';
-
-        if (isToday(day)) {
-            if (isCompleted) {
-                checkboxSquareBg = 'bg-green-500';
-                checkboxSquareBorder = 'border-green-600';
-                contentColor = 'text-white';
-            } else {
-                checkboxSquareBg = 'bg-green-100';
-                checkboxSquareBorder = 'border-green-500';
-                contentColor = 'text-green-700';
-            }
-        } else if (isPast(day)) {
-            if (isCompleted) {
-                checkboxSquareBg = 'bg-slate-600';
-                checkboxSquareBorder = 'border-slate-700';
-                contentColor = 'text-white';
-            } else {
-                checkboxSquareBg = 'bg-red-200';
-                checkboxSquareBorder = 'border-red-500';
-                contentColor = 'text-red-700';
-            }
-        } else {
-            checkboxSquareBg = 'bg-gray-100';
-            checkboxSquareBorder = 'border-gray-400';
-            contentColor = 'text-gray-500';
-        }
-
+        let cellBackground = 'bg-background hover:bg-muted/50'; // Default button background
+        let contentColor = 'text-foreground';
         let buttonInnerContent: React.ReactNode = null;
-        const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center";
 
-        if (habit.trackingFormat === 'measurable' && isCompleted && dayProgress?.value !== undefined) {
-            buttonInnerContent = (
-                <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
-                    <span className={cn("text-xs font-semibold", contentColor)}>{String(dayProgress.value)}</span>
-                </div>
-            );
+        const isDisabledFuture = isFuture(day) && !isToday(day);
+
+        if (habit.trackingFormat === 'measurable') {
+          // UI for Measurable Habits
+          if (isCompleted && dayProgress?.value !== undefined) {
+            buttonInnerContent = <span className="text-xs font-semibold">{String(dayProgress.value)}</span>;
+            contentColor = isToday(day) ? 'text-white' : 'text-white'; // Or adjust based on past completed
+            cellBackground = isToday(day) ? 'bg-green-500' : 'bg-slate-600';
+          } else {
+            buttonInnerContent = <GripVertical className="w-3 h-3 text-muted-foreground/70" />; // Placeholder for clickability
+            cellBackground = isToday(day) ? 'bg-green-100 hover:bg-green-200' : (isPast(day) ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-100 hover:bg-gray-200');
+            contentColor = isToday(day) ? 'text-green-700' : (isPast(day) ? 'text-red-700' : 'text-gray-500');
+          }
+           if (isDisabledFuture) {
+             cellBackground = 'bg-gray-100 cursor-not-allowed';
+             contentColor = 'text-gray-400';
+             buttonInnerContent = <span className="text-xs">-</span>;
+           }
+
         } else {
-            buttonInnerContent = (
-                <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
-                    {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />}
+          // UI for Yes/No Habits (Square Checkbox)
+          const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center";
+          let checkboxSquareBg = '';
+          let checkboxSquareBorder = '';
+          
+          if (isToday(day)) {
+              checkboxSquareBg = isCompleted ? 'bg-green-500' : 'bg-green-100';
+              checkboxSquareBorder = isCompleted ? 'border-green-600' : 'border-green-500';
+              contentColor = isCompleted ? 'text-white' : 'text-green-700';
+          } else if (isPast(day)) {
+              checkboxSquareBg = isCompleted ? 'bg-slate-600' : 'bg-red-200';
+              checkboxSquareBorder = isCompleted ? 'border-slate-700' : 'border-red-500';
+              contentColor = isCompleted ? 'text-white' : 'text-red-700';
+          } else { // Future
+              checkboxSquareBg = 'bg-gray-100';
+              checkboxSquareBorder = 'border-gray-400';
+              contentColor = 'text-gray-500';
+          }
+
+          buttonInnerContent = (
+              <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
+                  {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />}
+              </div>
+          );
+          // Cell background for yes/no remains neutral, color is on the square
+          cellBackground = 'bg-background hover:bg-muted/50';
+           if (isDisabledFuture) {
+             // Override for disabled future yes/no
+             buttonInnerContent = (
+                <div className={cn(squareBaseClasses, 'bg-gray-100 border-gray-300 opacity-70')}>
                 </div>
-            );
+             );
+           }
         }
 
 
@@ -99,33 +113,22 @@ function HabitRow({
           <td key={dateStr} className="p-0 text-center w-8 h-8">
             <button
               onClick={() => {
-                  if (isFuture(day) && !isToday(day)) return;
-                  if (habit.trackingFormat === 'measurable' && !isCompleted) { // Only prompt if not completed
-                      const promptMessage = `Enter value for ${habit.title}${habit.measurableUnit ? ` (${habit.measurableUnit})` : ''} on ${format(day, "MMM d")}:`;
-                      const valStr = prompt(promptMessage, String(dayProgress?.value || 1));
-                      if (valStr !== null) {
-                          const val = parseFloat(valStr);
-                          if (!isNaN(val) && val > 0) {
-                              onToggleComplete(habit.id, dateStr, val);
-                          } else if (valStr.trim() === "") { // Allow unchecking by entering nothing or cancelling
-                                onToggleComplete(habit.id, dateStr, undefined); // Or handle as toggle off
-                          } else {
-                              alert("Invalid number entered. Please enter a positive number.");
-                          }
-                      }
-                  } else { // For yes/no or already completed measurable, just toggle
-                      onToggleComplete(habit.id, dateStr, undefined);
+                  if (isDisabledFuture) return;
+                  if (habit.trackingFormat === 'measurable') {
+                      onOpenInputValueModal(habit, dateStr, dayProgress?.value);
+                  } else {
+                      onToggleComplete(habit.id, dateStr);
                   }
               }}
-              disabled={isFuture(day) && !isToday(day)}
+              disabled={isDisabledFuture}
               className={cn(
                 "w-full h-full flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/70 focus:z-10 relative transition-colors",
-                "bg-background hover:bg-muted/50",
-                (isFuture(day) && !isToday(day)) ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+                cellBackground, // Use the determined cell background
+                isDisabledFuture ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               )}
-              aria-label={`Mark habit ${habit.title} on ${format(day, "MMM d")} as ${isCompleted ? 'incomplete' : 'complete'}`}
+              aria-label={`Log habit ${habit.title} on ${format(day, "MMM d")}`}
             >
-              {buttonInnerContent}
+              <div className={cn(contentColor)}>{buttonInnerContent}</div>
             </button>
           </td>
         );
@@ -151,7 +154,8 @@ interface HabitTableProps {
   habits: Habit[];
   allProgress: HabitProgress;
   displayedMonth: Date;
-  onToggleComplete: (habitId: string, date: string, value?: number) => void;
+  onToggleComplete: (habitId: string, date: string) => void;
+  onOpenInputValueModal: (habit: Habit, date: string, currentValue?: number) => void;
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
 }
@@ -161,6 +165,7 @@ export function HabitTable({
   allProgress,
   displayedMonth,
   onToggleComplete,
+  onOpenInputValueModal,
   onEditHabit,
   onDeleteHabit
 }: HabitTableProps) {
@@ -203,6 +208,7 @@ export function HabitTable({
                 habitDailyProgress={allProgress[habit.id] || []}
                 daysInMonth={daysInMonth}
                 onToggleComplete={onToggleComplete}
+                onOpenInputValueModal={onOpenInputValueModal}
                 onEditHabit={onEditHabit}
                 onDeleteHabit={onDeleteHabit}
               />

@@ -10,6 +10,7 @@ import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
 import { SetupModal } from '@/components/user/SetupModal';
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
+import { InputValueModal } from '@/components/habit/InputValueModal'; // Added
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -33,22 +34,26 @@ export default function HabitForgeApp() {
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [displayedMonth, setDisplayedMonth] = useState(startOfMonth(new Date()));
 
+  // State for InputValueModal
+  const [isInputValueModalOpen, setIsInputValueModalOpen] = useState(false);
+  const [inputValueModalContext, setInputValueModalContext] = useState<{ habitId: string, date: string, habit: Habit, currentValue?: number } | null>(null);
+
+
   const { requestPermission, showNotification, permission } = useNotifications();
 
   useEffect(() => {
     const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
-      // Validate icon name against the list
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = undefined; // If icon name from storage isn't in our list, unset it
+        iconName = undefined;
       }
       return {
         ...h,
         icon: iconName,
         color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color))
                ? h.color
-               : HABIT_COLORS[index % HABIT_COLORS.length], // Ensure color is always valid
+               : HABIT_COLORS[index % HABIT_COLORS.length],
         measurableUnit: h.measurableUnit || (h.trackingFormat === 'measurable' ? 'units' : undefined),
         targetCount: h.targetCount || (h.trackingFormat === 'measurable' ? 1 : undefined),
       };
@@ -72,14 +77,13 @@ export default function HabitForgeApp() {
 
   const handleSetupSubmit = (name: string, selectedPresetsData: PresetHabitFormData[]) => {
     setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
-
     const isInitialSetup = !isEditProfileModalOpen && !userProfile.hasCompletedSetup;
 
-    if (isInitialSetup || (isEditProfileModalOpen && selectedPresetsData.length > 0)) { 
+    if (isInitialSetup || (isEditProfileModalOpen && selectedPresetsData.length > 0)) {
         const habitsToAdd: Habit[] = [];
         selectedPresetsData.forEach((preset) => {
             const existingHabitByTitle = habits.find(h => h.title === preset.title);
-            if (!existingHabitByTitle) { // Only add if title doesn't exist
+            if (!existingHabitByTitle) {
                 habitsToAdd.push({
                     id: crypto.randomUUID(),
                     createdAt: new Date().toISOString(),
@@ -88,7 +92,7 @@ export default function HabitForgeApp() {
                     trackingFormat: preset.trackingFormat,
                     measurableUnit: preset.measurableUnit,
                     targetCount: preset.targetCount,
-                    icon: preset.icon, // Icon name from preset
+                    icon: preset.icon,
                     color: HABIT_COLORS[(habits.length + habitsToAdd.length) % HABIT_COLORS.length],
                 });
             }
@@ -99,22 +103,20 @@ export default function HabitForgeApp() {
           toast({ title: isInitialSetup ? `Welcome, ${name}!` : `Profile updated for ${name}!`, description: `${habitsToAdd.length} new habit(s) added.` });
         } else if (isInitialSetup) {
           toast({ title: `Welcome, ${name}!`, description: "No new habits added from presets, you can add them later." });
-        } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) { // Editing name only
+        } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) {
             toast({ title: `Profile name updated to ${name}!` });
         }
-    } else if (isEditProfileModalOpen) { // Editing profile name only
+    } else if (isEditProfileModalOpen) {
         toast({ title: `Profile name updated to ${name}!` });
     }
-
-
     setIsSetupModalOpen(false);
     setIsEditProfileModalOpen(false);
   };
 
   const handleHabitFormSubmit = (data: HabitFormData | PresetHabitFormData[]) => {
-    if (Array.isArray(data)) { // Handling an array of PresetHabitFormData from CreateHabitModal
+    if (Array.isArray(data)) {
       const habitsToAdd: Habit[] = data
-        .filter(preset => !habits.some(h => h.title === preset.title)) // Avoid duplicates by title
+        .filter(preset => !habits.some(h => h.title === preset.title))
         .map((preset, indexOffset) => ({
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
@@ -123,7 +125,7 @@ export default function HabitForgeApp() {
           trackingFormat: preset.trackingFormat,
           measurableUnit: preset.measurableUnit,
           targetCount: preset.targetCount,
-          icon: preset.icon, // Icon name from preset
+          icon: preset.icon,
           color: HABIT_COLORS[(habits.length + indexOffset) % HABIT_COLORS.length],
       }));
 
@@ -133,7 +135,7 @@ export default function HabitForgeApp() {
       } else {
         toast({ title: "No New Habits Added", description: "Selected presets might already exist." });
       }
-    } else { // Handling a single HabitFormData for custom habit
+    } else {
       const newHabit: Habit = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
@@ -142,8 +144,8 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon, // Icon name from form
-        color: HABIT_COLORS[habits.length % HABIT_COLORS.length], // Programmatic color
+        icon: data.icon,
+        color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
       };
       setHabits(prev => [...prev, newHabit]);
       toast({ title: "Habit Tracked!", description: `"${newHabit.title}" is now being tracked.` });
@@ -154,14 +156,13 @@ export default function HabitForgeApp() {
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
      setHabits(prev => prev.map(h => h.id === habitId ? {
-        ...h, 
+        ...h,
         title: data.title,
         description: data.description || '',
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon, // Update icon from form
-        // Color is not updated here as it's removed from the form, existing color preserved
+        icon: data.icon,
       } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -196,93 +197,57 @@ export default function HabitForgeApp() {
     }
   };
 
-const handleToggleComplete = async (habitId: string, date: string, value?: number) => {
-    const habit = habits.find(h => h.id === habitId);
-    if (!habit) return;
+  const openInputValueModal = (habit: Habit, date: string, currentValue?: number) => {
+    setInputValueModalContext({ habitId: habit.id, date, habit, currentValue });
+    setIsInputValueModalOpen(true);
+  };
 
-    const oldStreak = calculateStreak(habitId, allProgress);
+  const processHabitCompletionEffects = async (habit: Habit, updatedProgress: HabitProgress, previousUserProfile: UserProfile, date: string, wasJustCompleted: boolean) => {
+    let userProfileAfterToggle = { ...previousUserProfile };
+    const oldStreak = calculateStreak(habit.id, allProgress); // Calculate old streak based on *current* allProgress
 
-    const newAllProgressAfterToggle = (() => {
-        const currentHabitSpecificProgress = allProgress[habitId] || [];
-        const entryIndex = currentHabitSpecificProgress.findIndex(p => p.date === date);
-        let newCompletedStatusForEntry: boolean;
-        let newValueForEntry: number | undefined;
-
-        if (entryIndex !== -1) { // Entry exists, toggle it
-            newCompletedStatusForEntry = !currentHabitSpecificProgress[entryIndex].completed;
-            if (newCompletedStatusForEntry) { // If checking as complete
-                newValueForEntry = habit.trackingFormat === 'measurable'
-                    ? (value !== undefined ? value : currentHabitSpecificProgress[entryIndex].value || habit.targetCount || 1)
-                    : undefined;
-            } else { // If unchecking
-                newValueForEntry = habit.trackingFormat === 'measurable' ? currentHabitSpecificProgress[entryIndex].value : undefined; 
-            }
-        } else { // New entry, mark as complete
-            newCompletedStatusForEntry = true;
-            newValueForEntry = habit.trackingFormat === 'measurable'
-                ? (value !== undefined ? value : habit.targetCount || 1)
-                : undefined;
-        }
-
-        let updatedHabitSpecificProgressList: DailyProgress[];
-        if (entryIndex !== -1) {
-            updatedHabitSpecificProgressList = currentHabitSpecificProgress.map((p, i) =>
-                i === entryIndex ? { ...p, completed: newCompletedStatusForEntry, value: newValueForEntry } : p
-            );
-        } else {
-            updatedHabitSpecificProgressList = [...currentHabitSpecificProgress, { date, completed: newCompletedStatusForEntry, value: newValueForEntry }];
-        }
-        updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        return { ...allProgress, [habitId]: updatedHabitSpecificProgressList };
-    })();
-
-    const newCompletionStatus = (newAllProgressAfterToggle[habitId] || []).find(p => p.date === date)?.completed ?? false;
-
-
-    let userProfileAfterToggle = { ...userProfile };
-
-    if (newCompletionStatus) {
+    if (wasJustCompleted) {
       userProfileAfterToggle.xp += XP_PER_COMPLETION;
-      const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
-        userProfileAfterToggle, habits, newAllProgressAfterToggle 
-      );
-      userProfileAfterToggle = profileWithBadges; 
-
-      const finalXp = userProfileAfterToggle.xp;
-      const { level: finalLevel } = calculateLevel(finalXp);
-      const oldLevel = userProfile.level; 
-      userProfileAfterToggle.level = finalLevel;
-      
       toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
+    }
 
-      if (newBadges.length > 0) {
-        newBadges.forEach(badge => {
-          toast({ title: "Achievement Unlocked!", description: `You earned the "${badge.name}" badge!` });
-          showNotification("Achievement Unlocked!", { body: `You earned the "${badge.name}" badge!` });
+    // Check for badges and level changes based on the new state
+    const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
+      userProfileAfterToggle, habits, updatedProgress
+    );
+    userProfileAfterToggle = profileWithBadges;
+
+    const finalXp = userProfileAfterToggle.xp;
+    const { level: finalLevel } = calculateLevel(finalXp);
+    const oldLevel = previousUserProfile.level;
+    userProfileAfterToggle.level = finalLevel;
+
+    if (newBadges.length > 0) {
+      newBadges.forEach(badge => {
+        toast({ title: "Achievement Unlocked!", description: `You earned the "${badge.name}" badge!` });
+        showNotification("Achievement Unlocked!", { body: `You earned the "${badge.name}" badge!` });
+      });
+    }
+
+    const newStreakAfterUpdate = calculateStreak(habit.id, updatedProgress);
+    const milestoneReached = newBadges.length > 0 || (newStreakAfterUpdate > 0 && newStreakAfterUpdate % 5 === 0) || (finalLevel > oldLevel) || (oldStreak === 0 && newStreakAfterUpdate === 1 && wasJustCompleted);
+
+    if (wasJustCompleted && milestoneReached) {
+      try {
+        const aiMessage = await generateMotivationalMessage({
+          habitName: habit.title,
+          userName: userProfileAfterToggle.userName || DEFAULT_USER_NAME,
+          streakLength: newStreakAfterUpdate,
+          milestoneAchieved: newBadges.length > 0 ? `badge: ${newBadges[0].name}` : (finalLevel > oldLevel ? `level ${finalLevel}` : `streak of ${newStreakAfterUpdate}`),
+          brokenStreak: false,
         });
+        toast({ title: "AI Coach Says:", description: aiMessage.message, duration: 7000 });
+      } catch (error) {
+        console.error("Error generating motivational message:", error);
       }
-      
-      const newStreak = calculateStreak(habitId, newAllProgressAfterToggle); 
-      const milestoneReached = newBadges.length > 0 || (newStreak > 0 && newStreak % 5 === 0) || (finalLevel > oldLevel) || (oldStreak === 0 && newStreak === 1 && newCompletionStatus) ;
-
-      if (milestoneReached) {
-        try {
-          const aiMessage = await generateMotivationalMessage({
-            habitName: habit.title,
-            userName: userProfileAfterToggle.userName || DEFAULT_USER_NAME, 
-            streakLength: newStreak,
-            milestoneAchieved: newBadges.length > 0 ? `badge: ${newBadges[0].name}` : (finalLevel > oldLevel ? `level ${finalLevel}` : `streak of ${newStreak}`),
-            brokenStreak: false,
-          });
-          toast({ title: "AI Coach Says:", description: aiMessage.message, duration: 7000 });
-        } catch (error) {
-          console.error("Error generating motivational message:", error);
-        }
-      }
-
-    } else { 
-      const newStreak = calculateStreak(habitId, newAllProgressAfterToggle); 
-      if (oldStreak > 0 && newStreak < oldStreak) { 
+    } else if (!wasJustCompleted) { // Habit was marked incomplete
+      const streakAfterUpdate = calculateStreak(habit.id, updatedProgress);
+      if (oldStreak > 0 && streakAfterUpdate < oldStreak) { // Streak was broken
         toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -296,9 +261,74 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         }
       }
     }
-    
-    setAllProgress(newAllProgressAfterToggle);
     setUserProfile(userProfileAfterToggle);
+  };
+
+  const handleInputValueSubmit = async (submittedValue?: number) => {
+    if (!inputValueModalContext) return;
+    const { habitId, date, habit } = inputValueModalContext;
+
+    const isNowCompleted = submittedValue !== undefined && submittedValue > 0;
+    const newValueForEntry = isNowCompleted ? submittedValue : undefined;
+
+    // Create the new progress state first
+    const newAllProgress = { ...allProgress };
+    const habitSpecificProgress = newAllProgress[habitId] || [];
+    const entryIndex = habitSpecificProgress.findIndex(p => p.date === date);
+
+    if (entryIndex !== -1) {
+      newAllProgress[habitId] = habitSpecificProgress.map((p, i) =>
+        i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
+      );
+    } else if (isNowCompleted) { // Only add new entry if it's a completion
+      newAllProgress[habitId] = [...habitSpecificProgress, { date, completed: true, value: newValueForEntry }];
+    }
+    if (newAllProgress[habitId]) {
+        newAllProgress[habitId].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }
+    
+    setAllProgress(newAllProgress); // Update progress state
+
+    // Process effects with the new progress state
+    await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, isNowCompleted);
+
+    setIsInputValueModalOpen(false);
+    setInputValueModalContext(null);
+  };
+
+
+  const handleToggleComplete = async (habitId: string, date: string) => {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit || habit.trackingFormat === 'measurable') {
+        // Measurable habits are handled by openInputValueModal and handleInputValueSubmit
+        const currentEntry = (allProgress[habitId] || []).find(p => p.date === date);
+        openInputValueModal(habit!, date, currentEntry?.value);
+        return;
+    }
+
+    // For "yes/no" habits
+    const currentProgressForHabit = allProgress[habitId] || [];
+    const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
+    const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
+    const isNowCompleted = !wasPreviouslyCompleted;
+
+    // Create the new progress state first
+    const newAllProgress = { ...allProgress };
+    let updatedHabitSpecificProgressList: DailyProgress[];
+    if (entryIndex !== -1) {
+        updatedHabitSpecificProgressList = currentProgressForHabit.map((p, i) =>
+            i === entryIndex ? { ...p, completed: isNowCompleted } : p
+        );
+    } else {
+        updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted }];
+    }
+    updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    newAllProgress[habitId] = updatedHabitSpecificProgressList;
+    
+    setAllProgress(newAllProgress); // Update progress state
+
+    // Process effects with the new progress state
+    await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, isNowCompleted);
   };
 
 
@@ -357,13 +387,15 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
       </header>
 
       <div className="mb-8 p-4 rounded-lg bg-card text-card-foreground">
-        {userProfile.userName && userProfile.userName !== DEFAULT_USER_NAME && (
-          <h2 className="text-[25px] font-bold mb-3 text-center md:text-left text-foreground">
-            {userProfile.userName}'s Progress
-          </h2>
-        )}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-x-6 gap-y-4">
-          <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
+           <div className="flex-1 min-w-0">
+            {userProfile.userName && userProfile.userName !== DEFAULT_USER_NAME && (
+              <h2 className="text-[25px] font-bold mb-1 text-left text-foreground">
+                {userProfile.userName}'s Progress
+              </h2>
+            )}
+            <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
+          </div>
           <div className="flex items-center justify-center md:justify-end gap-2 mt-4 md:mt-0">
             <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Previous month" className="w-8 h-8">
               <ChevronLeft className="w-5 h-5" />
@@ -394,12 +426,22 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
         isEditing={isEditProfileModalOpen || (userProfile.hasCompletedSetup && !isSetupModalOpen)}
       />
 
+      <InputValueModal
+        open={isInputValueModalOpen}
+        onOpenChange={setIsInputValueModalOpen}
+        onSubmit={handleInputValueSubmit}
+        habitTitle={inputValueModalContext?.habit.title || ''}
+        currentValue={inputValueModalContext?.currentValue}
+        unit={inputValueModalContext?.habit.measurableUnit}
+      />
+
       <main>
         <HabitTable
           habits={habits}
           allProgress={allProgress}
           displayedMonth={displayedMonth}
-          onToggleComplete={handleToggleComplete}
+          onToggleComplete={handleToggleComplete} // For yes/no
+          onOpenInputValueModal={openInputValueModal} // For measurable
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
         />
@@ -408,4 +450,3 @@ const handleToggleComplete = async (habitId: string, date: string, value?: numbe
     </div>
   );
 }
-
