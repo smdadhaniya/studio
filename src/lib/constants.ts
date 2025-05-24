@@ -5,7 +5,8 @@ import {
   PenSquare, CalendarDays, Headphones, Users, Smartphone, Sparkles, HeartHandshake, Lightbulb,
   DollarSign, Palette, Smile, Star, Sunrise, TrendingUp, Zap, Shield, CalendarCheck, Trophy,
   BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity,
-  Ruler
+  Ruler, Podcast, ChefHat, BedDouble, Phone, SpellCheck, Flower, PenTool, Code2, Paintbrush,
+  PiggyBank, ClipboardCheck, Languages, Music, GraduationCap
 } from 'lucide-react';
 
 
@@ -41,7 +42,7 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Palette", icon: Palette },
     { name: "Pen Square", icon: PenSquare },
     { name: "Line Chart", icon: LineChart },
-    { name: "Film", icon: Film }, // Used as fallback for Music Note
+    { name: "Film", icon: Film },
     { name: "Droplet", icon: Droplet },
     { name: "Wrench", icon: Wrench },
     { name: "Alarm Clock", icon: AlarmClock },
@@ -62,35 +63,77 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Gem", icon: Gem },
     { name: "Activity", icon: Activity },
     { name: "Ruler", icon: Ruler },
+    { name: "Podcast", icon: Podcast },
+    { name: "ChefHat", icon: ChefHat },
+    { name: "BedDouble", icon: BedDouble },
+    { name: "Phone", icon: Phone },
+    { name: "SpellCheck", icon: SpellCheck },
+    { name: "Flower", icon: Flower },
+    { name: "PenTool", icon: PenTool },
+    { name: "Code2", icon: Code2 },
+    { name: "Paintbrush", icon: Paintbrush },
+    { name: "PiggyBank", icon: PiggyBank },
+    { name: "ClipboardCheck", icon: ClipboardCheck },
+    { name: "Languages", icon: Languages },
+    { name: "Music", icon: Music },
+    { name: "GraduationCap", icon: GraduationCap },
 ];
 
 export const PREDEFINED_MEASUREMENT_UNITS: string[] = [
-  'pages', 'minutes', 'hours', 'km', 'miles', 'steps', 'times', 'servings', 
-  'glasses', 'reps', 'sets', 'kg', 'g', 'lbs', 'calls', 'tasks', 'words', 'lines of code', 'songs', 'chapters', 'units'
+  'pages', 'minutes', 'hours', 'km', 'miles', 'steps', 'times', 'servings',
+  'glasses', 'reps', 'sets', 'kg', 'g', 'lbs', 'calls', 'tasks', 'words', 'lines of code', 'songs', 'chapters', 'units',
+  'currency', 'items', 'modules' // Added new units
 ];
 
 
 export const PRESET_HABITS: PresetHabitFormData[] = [
+  // Existing Measurable (10)
   { title: 'Drink 8 glasses of water', description: 'Stay hydrated throughout the day.', trackingFormat: 'measurable', measurableUnit: 'glasses', targetCount: 8, icon: 'Droplet' },
   { title: 'Read for 30 minutes', description: 'Expand your knowledge or enjoy a story.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Book Open' },
   { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Dumbbell' },
   { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 10, icon: 'Brain' },
-  { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: 'Bed' },
   { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', measurableUnit: 'servings', targetCount: 5, icon: 'Apple' },
   { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 20, icon: 'Wrench' },
+  { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 15, icon: 'Headphones' },
+  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Smartphone' },
+  { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 15, icon: 'Sparkles' },
+  { title: 'Practice gratitude (3 things)', description: 'List three things you are grateful for.', trackingFormat: 'measurable', measurableUnit: 'items', targetCount: 3, icon: 'Heart Handshake' },
+
+  // New Measurable (10 more)
+  { title: 'Write 500 words', description: 'Work on your novel, blog, or journal.', trackingFormat: 'measurable', measurableUnit: 'words', targetCount: 500, icon: 'PenTool' },
+  { title: 'Practice coding for 1 hour', description: 'Develop your programming skills.', trackingFormat: 'measurable', measurableUnit: 'hours', targetCount: 1, icon: 'Code2' },
+  { title: 'Spend 30 minutes on a hobby', description: 'Engage in a relaxing activity.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Paintbrush' },
+  { title: 'Save $10', description: 'Build your savings consistently.', trackingFormat: 'measurable', measurableUnit: 'currency', targetCount: 10, icon: 'PiggyBank' },
+  { title: 'Complete 3 work/study tasks', description: 'Achieve your daily professional goals.', trackingFormat: 'measurable', measurableUnit: 'tasks', targetCount: 3, icon: 'ClipboardCheck' },
+  { title: 'Walk 5,000 steps', description: 'Stay active with a daily step goal.', trackingFormat: 'measurable', measurableUnit: 'steps', targetCount: 5000, icon: 'TrendingUp' },
+  { title: 'No social media for 2 hours straight', description: 'Focus without digital distractions.', trackingFormat: 'measurable', measurableUnit: 'hours', targetCount: 2, icon: 'Shield' },
+  { title: 'Learn 5 new vocabulary items', description: 'Expand your language skills.', trackingFormat: 'measurable', measurableUnit: 'items', targetCount: 5, icon: 'Languages' },
+  { title: 'Practice musical instrument for 20 mins', description: 'Hone your musical talents.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 20, icon: 'Music' },
+  { title: 'Complete 1 module of an online course', description: 'Progress in your online learning.', trackingFormat: 'measurable', measurableUnit: 'modules', targetCount: 1, icon: 'GraduationCap' },
+  
+  // Existing Yes/No (10)
+  { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: 'Bed' },
   { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: 'Alarm Clock' },
   { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: 'Glass Water' },
   { title: 'Write in a journal', description: 'Reflect on your day, thoughts, and feelings.', trackingFormat: 'yes/no', icon: 'Pen Square' },
   { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: 'Calendar Days' },
-  { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 15, icon: 'Headphones' },
   { title: 'Connect with a loved one', description: 'Call or spend quality time.', trackingFormat: 'yes/no', icon: 'Users' },
-  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 30, icon: 'Smartphone' },
-  { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'measurable', measurableUnit: 'minutes', targetCount: 15, icon: 'Sparkles' },
-  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'measurable', measurableUnit: 'times', targetCount: 3, icon: 'Heart Handshake' },
   { title: 'Work on a personal project', description: 'Dedicate time to your passions.', trackingFormat: 'yes/no', icon: 'Lightbulb' },
   { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'Dollar Sign' },
-  { title: 'Do something creative', description: 'Painting, writing, music, etc.', trackingFormat: 'yes/no', icon: 'Palette' },
+  { title: "Do something creative", description: "Painting, writing, music, etc.", trackingFormat: "yes/no", icon: "Palette" },
   { title: 'Compliment someone', description: 'Spread positivity and kindness.', trackingFormat: 'yes/no', icon: 'Smile' },
+
+  // New Yes/No (10 more)
+  { title: 'Take a 10-minute walk', description: 'A short break to refresh.', trackingFormat: 'yes/no', icon: 'Activity' },
+  { title: 'No snooze button', description: 'Wake up right away.', trackingFormat: 'yes/no', icon: 'Sunrise' },
+  { title: 'Stretch for 5 minutes', description: 'Improve flexibility and reduce tension.', trackingFormat: 'yes/no', icon: 'Activity' }, // Using Activity as stretch icon is not available
+  { title: 'Drink a cup of green tea', description: 'Enjoy a healthy beverage.', trackingFormat: 'yes/no', icon: 'Coffee' }, // Using Coffee as placeholder
+  { title: 'Listen to a podcast episode', description: 'Learn something new or be entertained.', trackingFormat: 'yes/no', icon: 'Podcast' },
+  { title: 'Avoid processed foods for the day', description: 'Focus on whole, natural foods.', trackingFormat: 'yes/no', icon: 'ChefHat' },
+  { title: 'Make your bed', description: 'Start the day with a small accomplishment.', trackingFormat: 'yes/no', icon: 'BedDouble' },
+  { title: 'Call a family member or friend', description: 'Nurture your relationships.', trackingFormat: 'yes/no', icon: 'Phone' },
+  { title: 'Learn one new word/fact', description: 'Daily micro-learning.', trackingFormat: 'yes/no', icon: 'SpellCheck' },
+  { title: 'Water your plants', description: 'Care for your green companions.', trackingFormat: 'yes/no', icon: 'Flower' },
 ];
 
 
@@ -162,7 +205,7 @@ export const BADGES: Badge[] = [
     id: 'power_user',
     name: 'Power User',
     description: 'Log 50 total completions across all habits.',
-    icon: 'BarChartBig', // Changed from Activity as BarChartBig is in HABIT_LUCIDE_ICONS_LIST
+    icon: 'BarChartBig',
     milestoneType: 'totalCompletions',
     milestoneValue: 50,
     xpReward: 100,
@@ -188,3 +231,6 @@ export const BADGES: Badge[] = [
 ];
 
 export const MAX_PROGRESS_DAYS = 30;
+
+
+    
