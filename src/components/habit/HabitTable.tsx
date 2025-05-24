@@ -49,14 +49,14 @@ function HabitRow({
 
         let checkboxSquareBg = '';
         let checkboxSquareBorder = '';
-        let contentColor = ''; 
+        let contentColor = '';
 
         if (isToday(day)) {
             if (isCompleted) {
                 checkboxSquareBg = 'bg-green-500';
                 checkboxSquareBorder = 'border-green-600';
                 contentColor = 'text-white';
-            } else { 
+            } else {
                 checkboxSquareBg = 'bg-green-100';
                 checkboxSquareBorder = 'border-green-500';
                 contentColor = 'text-green-700';
@@ -66,12 +66,12 @@ function HabitRow({
                 checkboxSquareBg = 'bg-slate-600';
                 checkboxSquareBorder = 'border-slate-700';
                 contentColor = 'text-white';
-            } else { 
+            } else {
                 checkboxSquareBg = 'bg-red-200';
                 checkboxSquareBorder = 'border-red-500';
                 contentColor = 'text-red-700';
             }
-        } else { 
+        } else {
             checkboxSquareBg = 'bg-gray-100';
             checkboxSquareBorder = 'border-gray-400';
             contentColor = 'text-gray-500';
@@ -100,19 +100,20 @@ function HabitRow({
             <button
               onClick={() => {
                   if (isFuture(day) && !isToday(day)) return;
-                  if (habit.trackingFormat === 'measurable' && !isCompleted) {
-                      const valStr = prompt(`Enter value for ${habit.title} on ${format(day, "MMM d")}:`, String(dayProgress?.value || 1));
+                  if (habit.trackingFormat === 'measurable' && !isCompleted) { // Only prompt if not completed
+                      const promptMessage = `Enter value for ${habit.title}${habit.measurableUnit ? ` (${habit.measurableUnit})` : ''} on ${format(day, "MMM d")}:`;
+                      const valStr = prompt(promptMessage, String(dayProgress?.value || 1));
                       if (valStr !== null) {
                           const val = parseFloat(valStr);
                           if (!isNaN(val) && val > 0) {
                               onToggleComplete(habit.id, dateStr, val);
-                          } else if (valStr.trim() === "") {
-                                onToggleComplete(habit.id, dateStr, undefined);
+                          } else if (valStr.trim() === "") { // Allow unchecking by entering nothing or cancelling
+                                onToggleComplete(habit.id, dateStr, undefined); // Or handle as toggle off
                           } else {
                               alert("Invalid number entered. Please enter a positive number.");
                           }
                       }
-                  } else {
+                  } else { // For yes/no or already completed measurable, just toggle
                       onToggleComplete(habit.id, dateStr, undefined);
                   }
               }}
@@ -149,7 +150,7 @@ function HabitRow({
 interface HabitTableProps {
   habits: Habit[];
   allProgress: HabitProgress;
-  displayedMonth: Date; // Changed from local state to prop
+  displayedMonth: Date;
   onToggleComplete: (habitId: string, date: string, value?: number) => void;
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
@@ -158,7 +159,7 @@ interface HabitTableProps {
 export function HabitTable({
   habits,
   allProgress,
-  displayedMonth, // Use prop
+  displayedMonth,
   onToggleComplete,
   onEditHabit,
   onDeleteHabit
@@ -174,14 +175,13 @@ export function HabitTable({
     return (
       <div className="text-center py-10 mt-4 border border-dashed rounded-md bg-muted/20">
         <p className="text-lg text-muted-foreground">No habits tracked yet.</p>
-        <p className="text-sm text-muted-foreground/80">Click "Track New Habit" to get started!</p>
+        <p className="text-sm text-muted-foreground/80">Click "Add New Habit" to get started!</p>
       </div>
     );
   }
 
   return (
     <div className="w-full overflow-x-auto border rounded-lg bg-card shadow-sm mt-4">
-      {/* Month navigation moved to HabitForgeApp */}
       <div className="overflow-x-auto">
         <table className="min-w-full w-max border-collapse">
           <thead>
@@ -213,5 +213,3 @@ export function HabitTable({
     </div>
   );
 }
-
-    

@@ -4,7 +4,8 @@ import {
   Settings, BookOpen, Droplet, Dumbbell, Brain, Bed, Apple, Wrench, AlarmClock, GlassWater,
   PenSquare, CalendarDays, Headphones, Users, Smartphone, Sparkles, HeartHandshake, Lightbulb,
   DollarSign, Palette, Smile, Star, Sunrise, TrendingUp, Zap, Shield, CalendarCheck, Trophy,
-  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity
+  BarChartBig, Award, Gem, Check, Target, Moon, Briefcase, Coffee, Film, LineChart, Activity,
+  Ruler // Added Ruler for measurable unit example if needed
 } from 'lucide-react';
 
 
@@ -40,7 +41,7 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Palette", icon: Palette },
     { name: "Pen Square", icon: PenSquare },
     { name: "Line Chart", icon: LineChart },
-    { name: "Music Note (fallback)", icon: Film }, // Note: Film is used here as a fallback example
+    { name: "Music Note (fallback)", icon: Film },
     { name: "Droplet", icon: Droplet },
     { name: "Wrench", icon: Wrench },
     { name: "Alarm Clock", icon: AlarmClock },
@@ -50,7 +51,6 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Sparkles", icon: Sparkles },
     { name: "Lightbulb", icon: Lightbulb },
     { name: "Settings", icon: Settings },
-    // Icons specifically for badges, ensuring they are in the list
     { name: "Star", icon: Star },
     { name: "TrendingUp", icon: TrendingUp },
     { name: "Zap", icon: Zap },
@@ -61,6 +61,7 @@ export const HABIT_LUCIDE_ICONS_LIST: IconListItem[] = [
     { name: "Award", icon: Award },
     { name: "Gem", icon: Gem },
     { name: "Activity", icon: Activity },
+    { name: "Ruler", icon: Ruler },
 ];
 
 
@@ -70,7 +71,7 @@ export const PRESET_HABITS: PresetHabitFormData[] = [
   { title: 'Exercise for 30 minutes', description: 'Physical activity for a healthy body.', trackingFormat: 'yes/no', icon: 'Dumbbell' },
   { title: 'Meditate for 10 minutes', description: 'Clear your mind and reduce stress.', trackingFormat: 'yes/no', icon: 'Brain' },
   { title: 'Go to bed by 10 PM', description: 'Ensure adequate sleep for recovery.', trackingFormat: 'yes/no', icon: 'Bed' },
-  { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', icon: 'Apple' },
+  { title: 'Eat 5 servings of fruits/vegetables', description: 'Nutritious eating for well-being.', trackingFormat: 'measurable', measurableUnit: 'servings', icon: 'Apple' },
   { title: 'Practice a new skill for 20 mins', description: 'Learn coding, an instrument, etc.', trackingFormat: 'yes/no', icon: 'Wrench' },
   { title: 'Wake up at 6 AM', description: 'Start your day early and productively.', trackingFormat: 'yes/no', icon: 'Alarm Clock' },
   { title: 'No sugary drinks', description: 'Opt for healthier beverage choices.', trackingFormat: 'yes/no', icon: 'Glass Water' },
@@ -78,11 +79,11 @@ export const PRESET_HABITS: PresetHabitFormData[] = [
   { title: 'Plan your next day', description: 'Organize tasks and set priorities.', trackingFormat: 'yes/no', icon: 'Calendar Days' },
   { title: 'Spend 15 mins learning', description: 'Focused learning on a chosen topic.', trackingFormat: 'yes/no', icon: 'Headphones' },
   { title: 'Connect with a loved one', description: 'Call or spend quality time.', trackingFormat: 'yes/no', icon: 'Users' },
-  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', icon: 'Smartphone' },
+  { title: 'Limit social media to 30 mins', description: 'Reduce screen time and distractions.', trackingFormat: 'measurable', measurableUnit: 'minutes', icon: 'Smartphone' },
   { title: 'Tidy up for 15 minutes', description: 'Keep your living space organized.', trackingFormat: 'yes/no', icon: 'Sparkles' },
-  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: 'Heart Handshake' }, // Corrected: Added space
+  { title: 'Practice gratitude', description: 'List three things you are grateful for.', trackingFormat: 'yes/no', icon: 'Heart Handshake' },
   { title: 'Work on a personal project', description: 'Dedicate time to your passions.', trackingFormat: 'yes/no', icon: 'Lightbulb' },
-  { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'Dollar Sign' }, // Corrected: Added space
+  { title: 'Review finances/budget', description: 'Stay on top of your financial health.', trackingFormat: 'yes/no', icon: 'Dollar Sign' },
   { title: 'Do something creative', description: 'Painting, writing, music, etc.', trackingFormat: 'yes/no', icon: 'Palette' },
   { title: 'Compliment someone', description: 'Spread positivity and kindness.', trackingFormat: 'yes/no', icon: 'Smile' },
 ];
@@ -156,7 +157,7 @@ export const BADGES: Badge[] = [
     id: 'power_user',
     name: 'Power User',
     description: 'Log 50 total completions across all habits.',
-    icon: 'BarChartBig', // Corrected from 'Activity' for consistency, BarChartBig is already imported
+    icon: 'BarChartBig',
     milestoneType: 'totalCompletions',
     milestoneValue: 50,
     xpReward: 100,
@@ -182,4 +183,3 @@ export const BADGES: Badge[] = [
 ];
 
 export const MAX_PROGRESS_DAYS = 30;
-

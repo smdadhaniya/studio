@@ -1,26 +1,35 @@
 
 "use client";
 
-import type { Habit, HabitTrackingFormat } from '@/lib/types'; // IconListItem removed
+import type { Habit, HabitTrackingFormat } from '@/lib/types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HABIT_COLORS } from '@/lib/constants'; // HABIT_LUCIDE_ICONS_LIST removed
+import { HABIT_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
-const habitFormSchema = z.object({
+const habitFormSchemaBase = z.object({
   title: z.string().min(1, "Title is required").max(100),
   description: z.string().max(500).optional(),
   trackingFormat: z.enum(['yes/no', 'measurable'], { required_error: "Tracking format is required" }),
-  // icon: z.string().optional(), // Icon field removed
+  measurableUnit: z.string().max(50).optional(),
   color: z.string().optional(),
+});
+
+const habitFormSchema = habitFormSchemaBase.superRefine((data, ctx) => {
+  if (data.trackingFormat === 'measurable' && (!data.measurableUnit || data.measurableUnit.trim() === '')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Unit is required for measurable habits.",
+      path: ["measurableUnit"],
+    });
+  }
 });
 
 export type HabitFormData = z.infer<typeof habitFormSchema>;
@@ -38,13 +47,12 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
       title: initialData?.title || '',
       description: initialData?.description || '',
       trackingFormat: initialData?.trackingFormat || 'yes/no',
-      // icon: initialData?.icon || (HABIT_LUCIDE_ICONS_LIST.length > 0 ? HABIT_LUCIDE_ICONS_LIST[0].name : undefined), // Icon default removed
+      measurableUnit: initialData?.measurableUnit || '',
       color: initialData?.color || HABIT_COLORS[0],
     },
   });
 
-  // const selectedIconName = form.watch('icon'); // Icon watch removed
-  // const SelectedLucideIcon = HABIT_LUCIDE_ICONS_LIST.find(item => item.name === selectedIconName)?.icon; // Icon lookup removed
+  const trackingFormat = form.watch('trackingFormat');
 
   return (
     <Form {...form}>
@@ -85,7 +93,13 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
               <FormLabel>Tracking Format</FormLabel>
               <FormControl>
                 <RadioGroup
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    if (value === 'yes/no') {
+                      form.setValue('measurableUnit', ''); // Clear unit if switching to yes/no
+                      form.clearErrors('measurableUnit');
+                    }
+                  }}
                   defaultValue={field.value}
                   className="flex flex-col space-y-1"
                 >
@@ -108,9 +122,23 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
           )}
         />
 
-        {/* Icon selection field removed */}
-        {/* <div className="grid grid-cols-2 gap-4"> */}
+        {trackingFormat === 'measurable' && (
           <FormField
+            control={form.control}
+            name="measurableUnit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit of Measurement</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., pages, minutes, km" {...field} className="text-sm"/>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <FormField
             control={form.control}
             name="color"
             render={({ field }) => (
@@ -137,8 +165,6 @@ export function HabitForm({ onSubmit, initialData, onCancel }: HabitFormProps) {
               </FormItem>
             )}
           />
-        {/* </div> */}
-
 
         <div className="flex justify-end gap-2 pt-4">
           {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}

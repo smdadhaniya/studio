@@ -8,8 +8,9 @@ export interface Habit {
   title: string;
   description: string;
   trackingFormat: HabitTrackingFormat;
+  measurableUnit?: string; // Added for measurable habits
   createdAt: string; // ISO date string
-  color?: string; 
+  color?: string;
   icon?: string; // Lucide Icon name (string) or undefined
 }
 
@@ -28,7 +29,7 @@ export interface UserProfile {
   level: number;
   unlockedBadgeIds: string[];
   userName: string;
-  hasCompletedSetup: boolean; // Changed from optional to required
+  hasCompletedSetup: boolean;
 }
 
 export interface Badge {
@@ -46,6 +47,7 @@ export interface PresetHabitFormData {
   title: string;
   description: string;
   trackingFormat: HabitTrackingFormat;
+  measurableUnit?: string; // Added for measurable habits
   icon: string; // Lucide Icon name (string)
 }
 
