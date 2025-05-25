@@ -110,6 +110,7 @@ export default function HabitForgeApp() {
     setUserProfile(prev => ({ ...prev, userName: effectiveName, hasCompletedSetup: true }));
 
     const habitsToAdd: Habit[] = [];
+     // Only add presets if it's initial setup OR if it's not editing profile (i.e. adding presets via create habit modal)
     if (selectedPresetsData.length > 0 && (isInitialSetup || (!isInitialSetup && !isEditProfileModalOpen))) {
         selectedPresetsData.forEach((preset) => {
             const existingHabitByTitle = habits.find(h => h.title === preset.title);
@@ -128,6 +129,7 @@ export default function HabitForgeApp() {
             }
         });
     }
+
 
     if (habitsToAdd.length > 0) {
       setHabits(prev => [...prev, ...habitsToAdd]);
@@ -260,7 +262,10 @@ export default function HabitForgeApp() {
 
     if (triggerPositiveReinforcement) {
       userProfileAfterToggle.xp += XP_PER_COMPLETION;
-      toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
+      // Only toast for XP gain if it's a genuine completion
+      if (triggerPositiveReinforcement) {
+         toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
+      }
     }
 
     const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
@@ -331,7 +336,7 @@ export default function HabitForgeApp() {
 
     const isNowCompleted = habit.trackingFormat === 'measurable' 
       ? (submittedValue !== undefined && submittedValue > 0 && submittedValue >= (habit.targetCount || 1))
-      : (submittedValue !== undefined && submittedValue > 0); 
+      : (submittedValue !== undefined && submittedValue > 0); // For yes/no, any positive value makes it complete, usually 1
 
     const newValueForEntry = submittedValue;
 
@@ -343,9 +348,12 @@ export default function HabitForgeApp() {
             i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
         );
     } else {
-        if (newValueForEntry !== undefined) {
+        // Only add a new entry if a value is being set (either for measurable or a 'yes' for yes/no)
+        if (newValueForEntry !== undefined) { 
             updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
         } else {
+             // If no value is submitted (e.g., clearing a measurable or toggling off a yes/no that wasn't there)
+             // and no existing entry, do nothing to the list for this case.
             updatedHabitSpecificProgressList = [...currentProgressForHabit];
         }
     }
@@ -354,8 +362,12 @@ export default function HabitForgeApp() {
     
     setAllProgress(newAllProgress); 
 
+    // Determine if positive reinforcement is triggered
+    // 1. Was not completed before, now it is.
     const wasJustNewlyCompleted = !wasPreviouslyCompleted && isNowCompleted;
+    // 2. Was already completed, and it's a measurable habit, and the new value is greater than the old.
     const valueIncreasedWhileCompleted = wasPreviouslyCompleted && isNowCompleted && 
+                                          habit.trackingFormat === 'measurable' &&
                                           submittedValue !== undefined && previousValue !== undefined && 
                                           submittedValue > previousValue;
     const triggerPositiveReinforcement = wasJustNewlyCompleted || valueIncreasedWhileCompleted;
@@ -377,6 +389,7 @@ export default function HabitForgeApp() {
         return;
     }
 
+    // For "yes/no" habits:
     const oldStreak = calculateStreak(habitId, allProgress);
     const previousUserProfileBeforeEffects = { ...userProfile };
 
@@ -385,16 +398,24 @@ export default function HabitForgeApp() {
     
     const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
     const isNowCompleted = !wasPreviouslyCompleted; 
+    // For yes/no, value is 1 if completed, undefined if not (or if explicitly cleared from measurable)
+    const newValueForEntry = isNowCompleted ? 1 : undefined; 
+
 
     let newAllProgress = { ...allProgress };
     let updatedHabitSpecificProgressList: DailyProgress[];
 
     if (entryIndex !== -1) {
         updatedHabitSpecificProgressList = currentProgressForHabit.map((p, i) =>
-            i === entryIndex ? { ...p, completed: isNowCompleted } : p 
+            i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p 
         );
     } else {
-        updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted }];
+         // Only add a new entry if it's being marked complete
+        if (isNowCompleted) {
+            updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
+        } else {
+            updatedHabitSpecificProgressList = [...currentProgressForHabit]; // No change if toggling off a non-existent entry
+        }
     }
     updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     newAllProgress[habitId] = updatedHabitSpecificProgressList;
@@ -483,9 +504,6 @@ export default function HabitForgeApp() {
             </Popover>
         </div>
         <div className="flex items-center gap-3">
-            <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
-              <PlusCircle className="w-5 h-5 mr-2" /> Add New Habit
-            </Button>
             {!userProfile.isSubscribed ? (
               <Button onClick={() => setIsSubscriptionModalOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm">
                 <Gem className="w-5 h-5 mr-2" /> Upgrade to Premium
@@ -559,6 +577,9 @@ export default function HabitForgeApp() {
             <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Next month" className="w-8 h-8">
               <ChevronRight className="w-5 h-5" />
             </Button>
+             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm ml-3">
+              <PlusCircle className="w-5 h-5 mr-2" /> Add New Habit
+            </Button>
           </div>
         </div>
       </div>
@@ -620,3 +641,6 @@ export default function HabitForgeApp() {
     </div>
   );
 }
+
+
+    
