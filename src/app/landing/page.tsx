@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CheckCircle, Rocket, Target, BarChart2, Users, ShieldCheck, Gem, Zap, TrendingUp, Lightbulb, PlayCircle } from 'lucide-react';
+import { CheckCircle, Rocket, Target, BarChart2, Users, ShieldCheck, Gem, Zap, TrendingUp, Lightbulb, PlayCircle, Heart, ThumbsUp, Sparkles, MessageSquareText, StepForward, ListChecks, BarChartBig, PenSquare, Mail } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -74,8 +74,41 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <StepForward className="w-16 h-16 text-accent mx-auto mb-4" />
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Simple Steps to Success</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Getting started with Habit Track is as easy as 1-2-3.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+            {[
+              { icon: PenSquare, title: "Define Your Habit", description: "Clearly outline the habit you want to build or break. Be specific, set your goals, and choose your tracking style!" },
+              { icon: ListChecks, title: "Track Your Progress", description: "Log your daily efforts with our intuitive interface. Every entry counts towards building momentum and achieving mastery." },
+              { icon: BarChartBig, title: "Visualize & Grow", description: "See your streaks grow, unlock achievements, and understand your patterns with insightful graphical reports. Celebrate your wins!" }
+            ].map((step, index) => (
+              <div key={index} className="flex flex-col items-center text-center p-6 bg-card rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+                <div className="relative mb-6">
+                    <div className="w-20 h-20 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                        <step.icon className="w-10 h-10" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-md">
+                        {index + 1}
+                    </div>
+                </div>
+                <h3 className="text-2xl font-semibold text-foreground mb-2">{step.title}</h3>
+                <p className="text-md text-muted-foreground">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* App Showcase Section */}
-       <section className="py-16 md:py-24">
+       <section className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Visualize Your New Self</h2>
@@ -97,6 +130,78 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <MessageSquareText className="w-16 h-16 text-primary mx-auto mb-4" />
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Loved by Achievers Like You</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Don't just take our word for it. Here's what early users are saying (placeholders).
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { name: "Sarah L.", role: "Productivity Enthusiast", quote: "Habit Track has been a game-changer for my daily routine! The visual progress and AI encouragement keep me motivated.", icon: ThumbsUp },
+              { name: "Mike P.", role: "Fitness Buff", quote: "Finally, a habit tracker that's both powerful and easy to use. Tracking my workouts and water intake has never been simpler.", icon: Heart },
+              { name: "Jessica B.", role: "Lifelong Learner", quote: "I love the gamified approach. Earning XP and badges for learning new skills makes the process so much more fun!", icon: Sparkles }
+            ].map((testimonial, index) => (
+              <Card key={index} className="bg-card text-card-foreground shadow-xl hover:shadow-accent/20 transition-shadow duration-300 rounded-xl overflow-hidden">
+                <CardContent className="p-6 text-center">
+                  <testimonial.icon className="w-10 h-10 text-accent mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground italic mb-4">"{testimonial.quote}"</p>
+                  <h4 className="text-xl font-semibold text-primary">{testimonial.name}</h4>
+                  <p className="text-sm text-muted-foreground/80">{testimonial.role}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Why Habit Track? Section */}
+      <section id="why-us" className="py-16 md:py-24 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Lightbulb className="w-16 h-16 text-accent mx-auto mb-4" />
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Why Choose Habit Track?</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              We focus on what truly matters for building lasting habits.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1">
+              <Image
+                src="https://placehold.co/600x450.png"
+                alt="Focused user with Habit Track"
+                width={600}
+                height={450}
+                className="rounded-xl shadow-lg border-2 border-accent/20 object-cover"
+                data-ai-hint="focused person planning"
+              />
+            </div>
+            <div className="order-1 md:order-2 space-y-6">
+              {[
+                { title: "Simplicity & Power", description: "An intuitive interface backed by robust tracking and analytics. No clutter, just clarity.", icon: Zap},
+                { title: "Motivation Built-In", description: "Gamification, AI coaching, and visual feedback to keep you engaged and inspired.", icon: TrendingUp},
+                { title: "You Own Your Data", description: "Local-first storage means your personal data stays private. Optional cloud sync for convenience.", icon: ShieldCheck},
+                { title: "Continuous Improvement", description: "We're dedicated to evolving Habit Track with features that truly support your growth journey.", icon: Gem}
+              ].map(point => (
+                <div key={point.title} className="flex items-start gap-4 p-4 bg-card rounded-lg shadow-md">
+                  <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0 mt-1">
+                    <point.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-semibold text-foreground mb-1">{point.title}</h4>
+                    <p className="text-md text-muted-foreground">{point.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-accent/10 via-background to-background">
         <div className="container mx-auto px-4 text-center">
@@ -111,7 +216,7 @@ export default function LandingPage() {
                   <CheckCircle className="mr-2 h-5 w-5" /> Get Started for Free
                 </Button>
             </Link>
-             <Link href="/#subscribe" passHref>
+             <Link href="/#subscribe" passHref> {/* This might need to point to a real subscribe section or modal trigger */}
                 <Button size="lg" variant="outline" className="text-lg px-10 py-7 border-accent text-accent hover:bg-accent/10 shadow-md transform hover:scale-105 transition-transform duration-300">
                     <Gem className="mr-2 h-5 w-5" /> Explore Premium
                 </Button>
@@ -142,3 +247,4 @@ export function PrivacyPage() {
 export function TermsPage() {
   return <div className="container mx-auto p-8"><h1>Terms of Service</h1><p>Details about your terms of service...</p></div>;
 }
+
