@@ -1,17 +1,14 @@
 
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google'; // Changed from Outfit to Poppins
+import Link from 'next/link'; // Added for navigation
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-// Removed Sidebar imports as they are not used
-// import { SidebarProvider, SidebarInset, Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
-// import { Button } from '@/components/ui/button';
-// import { Flame } from 'lucide-react';
 
-const poppins = Poppins({ // Changed from outfit to poppins
-  variable: '--font-poppins', // Changed variable name
+const poppins = Poppins({
+  variable: '--font-poppins',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'], // Added common weights for Poppins
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -26,9 +23,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={`${poppins.variable} antialiased`} suppressHydrationWarning={true}> {/* Used poppins.variable */}
-        {/* Removed SidebarProvider and Sidebar structure */}
+      <body className={`${poppins.variable} antialiased`} suppressHydrationWarning={true}>
         <div className="flex flex-col min-h-screen">
+          {/* New Global Navigation Bar */}
+          <nav className="w-full bg-card border-b border-border shadow-sm sticky top-0 z-50">
+            <div className="container mx-auto flex h-14 items-center justify-start gap-x-4 sm:gap-x-6 px-4">
+              <Link href="/landing" className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
+                Home
+              </Link>
+              <Link href="/" className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
+                My Habits
+              </Link>
+              <Link href="/admin" className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
+                Admin
+              </Link>
+            </div>
+          </nav>
+
           {/* The main content area */}
           <main className="flex-grow">
             {children}
