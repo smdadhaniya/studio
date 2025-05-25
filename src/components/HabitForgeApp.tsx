@@ -4,7 +4,7 @@
 import type { Habit, HabitProgress, UserProfile, PresetHabitFormData, DailyProgress } from '@/lib/types';
 import type { HabitFormData } from '@/components/habit/HabitForm';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation'; // Added for navigation
+// Removed useRouter as it's no longer needed for report navigation
 import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
@@ -12,6 +12,7 @@ import { SetupModal } from '@/components/user/SetupModal';
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { InputValueModal } from '@/components/habit/InputValueModal';
+import { HabitReportModal } from '@/components/habit/HabitReportModal'; // New import
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -49,8 +50,14 @@ export default function HabitForgeApp() {
   const [inputValueModalContext, setInputValueModalContext] = useState<{ habitId: string, date: string, habit: Habit, currentValue?: number } | null>(null);
   const [isBookmarkPopoverOpen, setIsBookmarkPopoverOpen] = useState(false);
 
+  // State for the report modal
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedHabitForReport, setSelectedHabitForReport] = useState<Habit | null>(null);
+  const [reportModalProgress, setReportModalProgress] = useState<DailyProgress[]>([]);
+
+
   const { requestPermission, showNotification, permission } = useNotifications();
-  const router = useRouter(); // Initialize router
+  // const router = useRouter(); // Removed router
 
   useEffect(() => {
     const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
@@ -157,7 +164,7 @@ export default function HabitForgeApp() {
       } else {
         toast({ title: "No New Habits Added", description: "Selected presets might already exist or none were selected." });
       }
-    } else {
+    } else { // Single HabitFormData
       const newHabit: Habit = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
@@ -226,6 +233,7 @@ export default function HabitForgeApp() {
         setAllProgress({});
         setUserProfile(getInitialUserProfile());
         saveState(BOOKMARKED_VIEW_DATE_KEY, null);
+        setDisplayedMonth(startOfMonth(new Date())); // Reset displayed month
         toast({ title: "Application Reset", description: "All your data has been cleared. Welcome back!", variant: "destructive", duration: 7000 });
         setIsSetupModalOpen(true);
       }
@@ -287,7 +295,7 @@ export default function HabitForgeApp() {
         console.error("Error generating motivational message:", error);
       }
     } else if (!triggerPositiveReinforcement) {
-      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) {
+      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) { // Condition for streak broken
         toast({ title: "Streak Broken", description: `For ${habit.title}. Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -389,7 +397,15 @@ export default function HabitForgeApp() {
   const goToNextMonth = () => setDisplayedMonth(prev => addMonths(prev, 1));
 
   const handleShowReport = (habitId: string) => {
-    router.push(`/reports/${habitId}`);
+    const habit = habits.find(h => h.id === habitId);
+    const progress = allProgress[habitId] || [];
+    if (habit) {
+      setSelectedHabitForReport(habit);
+      setReportModalProgress(progress);
+      setIsReportModalOpen(true);
+    } else {
+      toast({ title: "Error", description: "Could not find habit to generate report.", variant: "destructive"});
+    }
   };
 
   if (!userProfile.hasCompletedSetup && !isEditProfileModalOpen) {
@@ -538,6 +554,16 @@ export default function HabitForgeApp() {
         currentValue={inputValueModalContext?.currentValue}
         unit={inputValueModalContext?.habit.measurableUnit}
       />
+
+      <HabitReportModal
+        isOpen={isReportModalOpen}
+        onOpenChange={setIsReportModalOpen}
+        habit={selectedHabitForReport}
+        habitDailyProgress={reportModalProgress}
+        allHabits={habits}
+        allProgressData={allProgress}
+      />
+
 
       <main>
         <HabitTable
