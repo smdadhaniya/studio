@@ -25,7 +25,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog, RefreshCcw } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog, RefreshCcw, BarChart2 } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -75,6 +75,12 @@ export default function HabitForgeApp() {
     const loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
     setUserProfile(loadedProfile);
 
+    const bookmarkedDateString = loadState<string | null>(BOOKMARKED_VIEW_DATE_KEY, null);
+    if (bookmarkedDateString) {
+      setDisplayedMonth(startOfMonth(new Date(bookmarkedDateString)));
+    }
+
+
     if (!loadedProfile.hasCompletedSetup) {
       setIsSetupModalOpen(true);
     }
@@ -91,10 +97,12 @@ export default function HabitForgeApp() {
     setUserProfile(prev => ({ ...prev, userName: effectiveName, hasCompletedSetup: true }));
 
     const habitsToAdd: Habit[] = [];
-    if (selectedPresetsData.length > 0) { // Handles both initial setup and adding presets via "Edit Profile" if that flow passed presets
+    // Only add presets if it's the initial setup or if explicitly passed from a flow that allows adding presets
+    // For "Edit Profile", selectedPresetsData should ideally be empty as this modal is for name change only
+    if (selectedPresetsData.length > 0 && (isInitialSetup || !isEditProfileModalOpen)) {
         selectedPresetsData.forEach((preset) => {
             const existingHabitByTitle = habits.find(h => h.title === preset.title);
-            if (!existingHabitByTitle) { // Only add if no habit with the same title exists
+            if (!existingHabitByTitle) { 
                 habitsToAdd.push({
                     id: crypto.randomUUID(),
                     createdAt: new Date().toISOString(),
@@ -113,12 +121,12 @@ export default function HabitForgeApp() {
 
     if (habitsToAdd.length > 0) {
       setHabits(prev => [...prev, ...habitsToAdd]);
-      toast({ title: isInitialSetup ? `Welcome, ${effectiveName}!` : (isEditProfileModalOpen ? `Profile updated for ${effectiveName}!` : "Presets Added!"), description: `${habitsToAdd.length} new habit(s) added.` });
-    } else if (isInitialSetup) {
-      toast({ title: `Welcome, ${effectiveName}!`, description: "No new habits added from presets, you can add them later." });
-    } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) {
+      toast({ title: isInitialSetup ? `Welcome, ${effectiveName}!` : "Presets Added!", description: `${habitsToAdd.length} new habit(s) added.` });
+    } else if (isInitialSetup) { // User completed initial setup, but added no presets
+      toast({ title: `Welcome, ${effectiveName}!`, description: "You can add habits using the 'Add New Habit' button." });
+    } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) { // Edit profile flow, only name changed
         toast({ title: `Profile name updated to ${effectiveName}!` });
-    } else if (!isEditProfileModalOpen && selectedPresetsData.length > 0 && habitsToAdd.length === 0) {
+    } else if (!isEditProfileModalOpen && selectedPresetsData.length > 0 && habitsToAdd.length === 0) { // "Add from Presets" tab in CreateHabitModal, but all chosen presets already existed
         toast({ title: "No New Habits Added", description: "Selected presets might already exist." });
     }
 
@@ -139,7 +147,7 @@ export default function HabitForgeApp() {
           trackingFormat: preset.trackingFormat,
           measurableUnit: preset.trackingFormat === 'measurable' ? preset.measurableUnit : undefined,
           targetCount: preset.trackingFormat === 'measurable' ? preset.targetCount : undefined,
-          icon: preset.icon, // Icon name (string)
+          icon: preset.icon,
           color: HABIT_COLORS[(habits.length + indexOffset) % HABIT_COLORS.length],
       }));
 
@@ -158,7 +166,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon, // Icon name (string) from form
+        icon: data.icon, 
         color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
       };
       setHabits(prev => [...prev, newHabit]);
@@ -176,7 +184,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon, // Icon name (string) from form
+        icon: data.icon,
       } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -217,9 +225,9 @@ export default function HabitForgeApp() {
         setHabits([]);
         setAllProgress({});
         setUserProfile(getInitialUserProfile());
-        saveState(BOOKMARKED_VIEW_DATE_KEY, null); // Clear bookmark
+        saveState(BOOKMARKED_VIEW_DATE_KEY, null); 
         toast({ title: "Application Reset", description: "All your data has been cleared. Welcome back!", variant: "destructive", duration: 7000 });
-        setIsSetupModalOpen(true); // Trigger setup modal
+        setIsSetupModalOpen(true); 
       }
     }
   };
@@ -300,7 +308,7 @@ export default function HabitForgeApp() {
     if (!inputValueModalContext) return;
     const { habitId, date, habit } = inputValueModalContext;
 
-    const oldStreak = calculateStreak(habitId, allProgress); // Calculate old streak BEFORE progress update
+    const oldStreak = calculateStreak(habitId, allProgress); 
 
     const currentProgressForHabit = allProgress[habitId] || [];
     const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
@@ -346,7 +354,7 @@ export default function HabitForgeApp() {
         return;
     }
     
-    const oldStreak = calculateStreak(habitId, allProgress); // Calculate old streak BEFORE progress update
+    const oldStreak = calculateStreak(habitId, allProgress); 
 
     const currentProgressForHabit = allProgress[habitId] || [];
     const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
@@ -368,7 +376,7 @@ export default function HabitForgeApp() {
     
     setAllProgress(newAllProgress); 
 
-    const triggerPositiveReinforcement = isNowCompleted; // For yes/no, if it's now complete, positive effects trigger.
+    const triggerPositiveReinforcement = isNowCompleted; 
     await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, triggerPositiveReinforcement, oldStreak);
   };
 
@@ -379,6 +387,14 @@ export default function HabitForgeApp() {
 
   const goToPreviousMonth = () => setDisplayedMonth(prev => subMonths(prev, 1));
   const goToNextMonth = () => setDisplayedMonth(prev => addMonths(prev, 1));
+
+  const handleShowReport = (habitId: string) => {
+    const habit = habits.find(h => h.id === habitId);
+    toast({
+      title: "Reports Coming Soon!",
+      description: `Detailed reports for "${habit?.title || 'this habit'}" will be available in a future update.`,
+    });
+  };
 
   if (!userProfile.hasCompletedSetup && !isEditProfileModalOpen) {
     return (
@@ -536,12 +552,10 @@ export default function HabitForgeApp() {
           onOpenInputValueModal={openInputValueModal}
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
+          onShowReport={handleShowReport}
         />
       </main>
 
     </div>
   );
 }
-
-
-    
