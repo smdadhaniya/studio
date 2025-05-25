@@ -3,8 +3,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Rocket, Zap } from 'lucide-react'; // Added Zap for yearly
+import { Rocket, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -22,55 +23,55 @@ export function SubscriptionModal({ open, onOpenChange, onSubscribe }: Subscript
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-card text-card-foreground">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-xl">
+          <DialogTitle className="flex items-center text-xl font-semibold">
             <Rocket className="w-6 h-6 mr-2 text-primary" />
             Upgrade to Habit Track Premium!
           </DialogTitle>
-          <DialogDescription className="mt-2 text-sm">
-            Unlock cloud sync for your habits across all your devices, ensuring your progress is always safe and accessible.
+          <DialogDescription className="mt-2 text-sm text-muted-foreground">
+            Unlock cloud sync for your habits across all your devices, ensuring your progress is always safe and accessible. Plus, gain access to exclusive themes and advanced reporting features.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Monthly</CardTitle>
-              <CardDescription>Flexible plan</CardDescription>
+        <div className="py-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Card className="flex flex-col border hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-medium">Monthly</CardTitle>
+              <CardDescription>Flexible plan, cancel anytime.</CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col justify-between items-center">
-              <div>
+            <CardContent className="flex-grow flex flex-col justify-between items-center text-center">
+              <div className="mb-4">
                 <p className="text-3xl font-bold text-primary">$5</p>
-                <p className="text-xs text-muted-foreground text-center">per month</p>
+                <p className="text-xs text-muted-foreground">per month</p>
               </div>
               <Button 
                 type="button" 
                 onClick={handleSubscribeClick} 
-                className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                Subscribe Monthly
+                Choose Monthly
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col border-primary ring-2 ring-primary relative">
-             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-0.5 text-xs font-semibold rounded-full flex items-center">
-                <Zap className="w-3 h-3 mr-1" /> Best Value
+          <Card className="flex flex-col border-2 border-primary ring-2 ring-primary/50 relative shadow-xl hover:shadow-2xl transition-shadow duration-200">
+             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold rounded-full flex items-center shadow-md">
+                <Zap className="w-3.5 h-3.5 mr-1.5" /> Best Value
             </div>
-            <CardHeader className="pb-2 pt-6">
-              <CardTitle className="text-lg">Yearly</CardTitle>
-              <CardDescription>Save 16%!</CardDescription>
+            <CardHeader className="pb-3 pt-8"> {/* Added padding-top to make space for the badge */}
+              <CardTitle className="text-lg font-medium">Yearly</CardTitle>
+              <CardDescription>Save 2 months! (16% off)</CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow flex flex-col justify-between items-center">
-              <div>
+            <CardContent className="flex-grow flex flex-col justify-between items-center text-center">
+              <div className="mb-4">
                 <p className="text-3xl font-bold text-primary">$50</p>
-                <p className="text-xs text-muted-foreground text-center">per year</p>
+                <p className="text-xs text-muted-foreground">per year</p>
               </div>
               <Button 
                 type="button" 
                 onClick={handleSubscribeClick} 
-                className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                Subscribe Yearly
+                Choose Yearly
               </Button>
             </CardContent>
           </Card>
@@ -85,3 +86,4 @@ export function SubscriptionModal({ open, onOpenChange, onSubscribe }: Subscript
     </Dialog>
   );
 }
+
