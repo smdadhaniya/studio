@@ -8,7 +8,7 @@ import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
 import { SetupModal } from '@/components/user/SetupModal';
-import { SubscriptionModal } from '@/components/user/SubscriptionModal'; // Added
+import { SubscriptionModal } from '@/components/user/SubscriptionModal';
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { InputValueModal } from '@/components/habit/InputValueModal';
@@ -27,7 +27,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog, RefreshCcw, BarChart2, Gem } from 'lucide-react'; // Added Gem
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog, RefreshCcw, BarChart2, Gem } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -54,7 +54,7 @@ export default function HabitForgeApp() {
   const [selectedHabitForReport, setSelectedHabitForReport] = useState<Habit | null>(null);
   const [reportModalProgress, setReportModalProgress] = useState<DailyProgress[]>([]);
 
-  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false); // Added for subscription modal
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
   const { requestPermission, showNotification, permission } = useNotifications();
 
@@ -63,13 +63,13 @@ export default function HabitForgeApp() {
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = undefined; // Remove icon if not found in current list
+        iconName = undefined; 
       }
       return {
         ...h,
-        id: h.id || crypto.randomUUID(), // Ensure ID exists
-        createdAt: h.createdAt || new Date().toISOString(), // Ensure createdAt exists
-        description: h.description || '', // Ensure description exists
+        id: h.id || crypto.randomUUID(), 
+        createdAt: h.createdAt || new Date().toISOString(), 
+        description: h.description || '', 
         icon: iconName,
         color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color))
                ? h.color
@@ -84,7 +84,6 @@ export default function HabitForgeApp() {
     setAllProgress(loadedProgress);
 
     let loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
-     // Ensure isSubscribed defaults to false if not present
     if (loadedProfile.isSubscribed === undefined) {
       loadedProfile = { ...loadedProfile, isSubscribed: false };
     }
@@ -430,8 +429,6 @@ export default function HabitForgeApp() {
     setUserProfile(prev => ({ ...prev, isSubscribed: true }));
     toast({ title: "Subscribed!", description: "Welcome to Premium! Cloud sync is now notionally active." });
     setIsSubscriptionModalOpen(false);
-    // In a real app, this would trigger backend logic to enable subscription features and data sync.
-    // For now, it just updates the local state.
   };
 
   if (!userProfile.hasCompletedSetup && !isSetupModalOpen && !isEditProfileModalOpen) { 
@@ -489,6 +486,15 @@ export default function HabitForgeApp() {
             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
               <PlusCircle className="w-5 h-5 mr-2" /> Add New Habit
             </Button>
+            {!userProfile.isSubscribed ? (
+              <Button onClick={() => setIsSubscriptionModalOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm">
+                <Gem className="w-5 h-5 mr-2" /> Upgrade to Premium
+              </Button>
+            ) : (
+              <Button onClick={() => toast({title: "Manage Subscription", description:"Subscription management coming soon."})} variant="outline" className="text-sm">
+                <Gem className="w-5 h-5 mr-2 text-primary" /> Manage Subscription
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="text-sm w-9 h-9">
@@ -509,17 +515,6 @@ export default function HabitForgeApp() {
                     <span>Enable Notifications</span>
                   </DropdownMenuItem>
                 )}
-                 {!userProfile.isSubscribed ? (
-                    <DropdownMenuItem onSelect={() => setIsSubscriptionModalOpen(true)}>
-                        <Gem className="mr-2 h-4 w-4 text-primary" /> 
-                        <span>Upgrade to Premium</span>
-                    </DropdownMenuItem>
-                 ) : (
-                    <DropdownMenuItem onSelect={() => toast({title: "Manage Subscription", description:"Subscription management coming soon."})}>
-                        <Gem className="mr-2 h-4 w-4 text-primary" />
-                        <span>Manage Subscription</span>
-                    </DropdownMenuItem>
-                 )}
                 <DropdownMenuItem onSelect={() => toast({title: "Feedback", description: "This feature is coming soon!"})}>
                   <MessageSquare className="mr-2 h-4 w-4" />
                   <span>Share Feedback</span>

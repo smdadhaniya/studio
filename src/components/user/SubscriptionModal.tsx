@@ -40,7 +40,7 @@ export function SubscriptionModal({ open, onOpenChange, onSubscribe }: Subscript
             </CardHeader>
             <CardContent className="flex-grow flex flex-col justify-between items-center text-center">
               <div className="mb-4">
-                <p className="text-3xl font-bold text-primary">$5</p>
+                <p className="text-[25px] font-bold text-primary">$5</p>
                 <p className="text-xs text-muted-foreground">per month</p>
               </div>
               <Button 
@@ -63,7 +63,7 @@ export function SubscriptionModal({ open, onOpenChange, onSubscribe }: Subscript
             </CardHeader>
             <CardContent className="flex-grow flex flex-col justify-between items-center text-center">
               <div className="mb-4">
-                <p className="text-3xl font-bold text-primary">$50</p>
+                <p className="text-[25px] font-bold text-primary">$50</p>
                 <p className="text-xs text-muted-foreground">per year</p>
               </div>
               <Button 
@@ -86,4 +86,3 @@ export function SubscriptionModal({ open, onOpenChange, onSubscribe }: Subscript
     </Dialog>
   );
 }
-
