@@ -25,7 +25,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog } from 'lucide-react';
+import { PlusCircle, BellRing, Flame, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog, RefreshCcw } from 'lucide-react';
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -210,6 +210,19 @@ export default function HabitForgeApp() {
     }
   };
 
+  const handleResetEverything = () => {
+    if (window.confirm("Are you sure you want to RESET EVERYTHING? This will delete all habits, progress, and your profile information (name, achievements). This action cannot be undone.")) {
+      if (window.confirm("FINAL CONFIRMATION: This will permanently erase all app data. There's no going back. Are you sure?")) {
+        setHabits([]);
+        setAllProgress({});
+        setUserProfile(getInitialUserProfile());
+        saveState(BOOKMARKED_VIEW_DATE_KEY, null); // Clear bookmark
+        toast({ title: "Application Reset", description: "All your data has been cleared. Welcome back!", variant: "destructive", duration: 7000 });
+        setIsSetupModalOpen(true); // Trigger setup modal
+      }
+    }
+  };
+
   const openInputValueModal = (habit: Habit, date: string, currentValue?: number) => {
     setInputValueModalContext({ habitId: habit.id, date, habit, currentValue });
     setIsInputValueModalOpen(true);
@@ -378,7 +391,7 @@ export default function HabitForgeApp() {
                   variant="ghost"
                   size="icon"
                   className="text-primary hover:text-primary/80 w-8 h-8 ml-1"
-                  aria-label="Bookmark"
+                  aria-label="Bookmark Current View"
                 >
                   <Bookmark className="w-5 h-5" />
                 </Button>
@@ -397,7 +410,7 @@ export default function HabitForgeApp() {
                   }}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  Save Bookmark
+                  Save Current View
                 </Button>
               </PopoverContent>
             </Popover>
@@ -437,6 +450,13 @@ export default function HabitForgeApp() {
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   <span>Delete All Habits</span>
+                </DropdownMenuItem>
+                 <DropdownMenuItem
+                  onSelect={handleResetEverything}
+                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                >
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  <span>Reset Everything</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -507,3 +527,6 @@ export default function HabitForgeApp() {
     </div>
   );
 }
+
+
+    
