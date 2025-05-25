@@ -335,7 +335,8 @@ export function getInitialUserProfile(): UserProfile {
     level: 1,
     unlockedBadgeIds: [],
     userName: DEFAULT_USER_NAME,
-    hasCompletedSetup: true, // Default to true to prevent setup modal on first load after this change
+    hasCompletedSetup: false, // Changed to false to trigger setup on first load
+    isSubscribed: false, // Initialize subscription status
   };
 }
 
@@ -343,4 +344,3 @@ export function getInitialUserProfile(): UserProfile {
 function isAfter(date1: Date, date2: Date): boolean {
     return startOfDay(date1).getTime() > startOfDay(date2).getTime();
 }
-

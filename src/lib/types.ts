@@ -31,6 +31,7 @@ export interface UserProfile {
   unlockedBadgeIds: string[];
   userName: string;
   hasCompletedSetup: boolean;
+  isSubscribed?: boolean; // Added for subscription
 }
 
 export interface Badge {
@@ -58,4 +59,3 @@ export interface IconListItem {
   name: string;
   icon: LucideIcon;
 }
-
