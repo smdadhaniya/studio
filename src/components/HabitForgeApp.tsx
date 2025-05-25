@@ -83,14 +83,16 @@ export default function HabitForgeApp() {
   useEffect(() => { saveState(USER_PROFILE_KEY, userProfile); }, [userProfile]);
 
   const handleSetupSubmit = (name: string, selectedPresetsData: PresetHabitFormData[]) => {
-    setUserProfile(prev => ({ ...prev, userName: name, hasCompletedSetup: true }));
-    const isInitialSetup = !isEditProfileModalOpen && !userProfile.hasCompletedSetup;
+    const isInitialSetup = !userProfile.hasCompletedSetup;
+    const effectiveName = name.trim() === '' ? (userProfile.userName || DEFAULT_USER_NAME) : name.trim();
 
-    if (isInitialSetup || (isEditProfileModalOpen && selectedPresetsData.length > 0)) {
-        const habitsToAdd: Habit[] = [];
+    setUserProfile(prev => ({ ...prev, userName: effectiveName, hasCompletedSetup: true }));
+
+    const habitsToAdd: Habit[] = [];
+    if (selectedPresetsData.length > 0) {
         selectedPresetsData.forEach((preset) => {
             const existingHabitByTitle = habits.find(h => h.title === preset.title);
-            if (!existingHabitByTitle) {
+            if (!existingHabitByTitle) { // Only add if title doesn't exist
                 habitsToAdd.push({
                     id: crypto.randomUUID(),
                     createdAt: new Date().toISOString(),
@@ -104,26 +106,25 @@ export default function HabitForgeApp() {
                 });
             }
         });
-
-        if (habitsToAdd.length > 0) {
-          setHabits(prev => [...prev, ...habitsToAdd]);
-          toast({ title: isInitialSetup ? `Welcome, ${name}!` : `Profile updated for ${name}!`, description: `${habitsToAdd.length} new habit(s) added.` });
-        } else if (isInitialSetup) {
-          toast({ title: `Welcome, ${name}!`, description: "No new habits added from presets, you can add them later." });
-        } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) {
-            toast({ title: `Profile name updated to ${name}!` });
-        }
-    } else if (isEditProfileModalOpen) {
-        toast({ title: `Profile name updated to ${name}!` });
     }
+
+    if (habitsToAdd.length > 0) {
+      setHabits(prev => [...prev, ...habitsToAdd]);
+      toast({ title: isInitialSetup ? `Welcome, ${effectiveName}!` : `Profile updated for ${effectiveName}!`, description: `${habitsToAdd.length} new habit(s) added.` });
+    } else if (isInitialSetup) {
+      toast({ title: `Welcome, ${effectiveName}!`, description: "No new habits added from presets, you can add them later." });
+    } else if (isEditProfileModalOpen) { // Only for profile editing (name change)
+        toast({ title: `Profile name updated to ${effectiveName}!` });
+    }
+
     setIsSetupModalOpen(false);
     setIsEditProfileModalOpen(false);
   };
 
   const handleHabitFormSubmit = (data: HabitFormData | PresetHabitFormData[]) => {
-    if (Array.isArray(data)) {
+    if (Array.isArray(data)) { // Coming from CreateHabitModal's preset tab
       const habitsToAdd: Habit[] = data
-        .filter(preset => !habits.some(h => h.title === preset.title))
+        .filter(preset => !habits.some(h => h.title === preset.title)) // Prevent duplicates by title
         .map((preset, indexOffset) => ({
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
@@ -140,9 +141,9 @@ export default function HabitForgeApp() {
         setHabits(prev => [...prev, ...habitsToAdd]);
         toast({ title: `${habitsToAdd.length} Preset Habit(s) Added!`, description: `Successfully added new habits from presets.` });
       } else {
-        toast({ title: "No New Habits Added", description: "Selected presets might already exist." });
+        toast({ title: "No New Habits Added", description: "Selected presets might already exist or none were selected." });
       }
-    } else {
+    } else { // Coming from CreateHabitModal's custom tab (HabitFormData)
       const newHabit: Habit = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
@@ -151,7 +152,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon, // Icon name string or undefined
+        icon: data.icon, // Icon name string or undefined from form
         color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
       };
       setHabits(prev => [...prev, newHabit]);
@@ -163,13 +164,13 @@ export default function HabitForgeApp() {
 
   const handleHabitUpdate = (habitId: string, data: HabitFormData) => {
      setHabits(prev => prev.map(h => h.id === habitId ? {
-        ...h,
+        ...h, // Preserve existing color and other fields not in form
         title: data.title,
         description: data.description || '',
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon, // Icon name string or undefined
+        icon: data.icon, // Icon name string or undefined from form
       } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -209,24 +210,26 @@ export default function HabitForgeApp() {
     setIsInputValueModalOpen(true);
   };
 
-  const processHabitCompletionEffects = async (habit: Habit, updatedProgress: HabitProgress, previousUserProfile: UserProfile, date: string, wasJustCompleted: boolean) => {
+  const processHabitCompletionEffects = async (habit: Habit, updatedProgressForEffects: HabitProgress, previousUserProfile: UserProfile, date: string, wasJustCompleted: boolean) => {
     let userProfileAfterToggle = { ...previousUserProfile };
-    const oldStreak = calculateStreak(habit.id, allProgress); // Calculate old streak based on *current* allProgress
+    const oldStreak = calculateStreak(habit.id, allProgress); // Calculate old streak based on *current* allProgress (before this specific toggle fully applied to state)
 
     if (wasJustCompleted) {
       userProfileAfterToggle.xp += XP_PER_COMPLETION;
       toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
     }
 
+    // Pass the potentially updated progress for accurate badge checking
     const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
-      userProfileAfterToggle, habits, updatedProgress
+      userProfileAfterToggle, habits, updatedProgressForEffects
     );
     userProfileAfterToggle = profileWithBadges;
 
     const finalXp = userProfileAfterToggle.xp;
     const { level: finalLevel } = calculateLevel(finalXp);
-    const oldLevel = previousUserProfile.level;
+    const oldLevel = previousUserProfile.level; // Use level from profile *before* this toggle's XP
     userProfileAfterToggle.level = finalLevel;
+
 
     if (newBadges.length > 0) {
       newBadges.forEach(badge => {
@@ -235,7 +238,7 @@ export default function HabitForgeApp() {
       });
     }
 
-    const newStreakAfterUpdate = calculateStreak(habit.id, updatedProgress);
+    const newStreakAfterUpdate = calculateStreak(habit.id, updatedProgressForEffects);
     const milestoneReached = newBadges.length > 0 || (newStreakAfterUpdate > 0 && newStreakAfterUpdate % 5 === 0) || (finalLevel > oldLevel) || (oldStreak === 0 && newStreakAfterUpdate === 1 && wasJustCompleted);
 
     if (wasJustCompleted && milestoneReached) {
@@ -251,14 +254,14 @@ export default function HabitForgeApp() {
       } catch (error) {
         console.error("Error generating motivational message:", error);
       }
-    } else if (!wasJustCompleted) {
-      const streakAfterUpdate = calculateStreak(habit.id, updatedProgress);
-      if (oldStreak > 0 && streakAfterUpdate < oldStreak) {
-        toast({ title: "Streak Broken", description: `Don't worry, you can start a new one!`, variant: "destructive" });
+    } else if (!wasJustCompleted) { // Habit was marked as incomplete
+      // Check if a streak was broken due to this action
+      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) { // Streak has indeed decreased
+        toast({ title: "Streak Broken", description: `For ${habit.title}. Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
             habitName: habit.title,
-            streakLength: oldStreak,
+            streakLength: oldStreak, // Report the length of the streak that was broken
           });
           toast({ title: "A Little Setback...", description: aiMessage.message, duration: 7000 });
           showNotification("Streak Broken", { body: `For ${habit.title}. ${aiMessage.message}` });
@@ -267,34 +270,44 @@ export default function HabitForgeApp() {
         }
       }
     }
-    setUserProfile(userProfileAfterToggle);
+    setUserProfile(userProfileAfterToggle); // Save all accumulated changes to user profile
   };
 
   const handleInputValueSubmit = async (submittedValue?: number) => {
     if (!inputValueModalContext) return;
     const { habitId, date, habit } = inputValueModalContext;
 
-    const isNowCompleted = submittedValue !== undefined && submittedValue > 0;
-    const newValueForEntry = isNowCompleted ? submittedValue : undefined;
+    const currentProgressForHabit = allProgress[habitId] || [];
+    const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
+    const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
+    const previousValue = entryIndex !== -1 ? currentProgressForHabit[entryIndex].value : undefined;
 
-    const newAllProgress = { ...allProgress };
-    const habitSpecificProgress = newAllProgress[habitId] || [];
-    const entryIndex = habitSpecificProgress.findIndex(p => p.date === date);
+    const isNowCompleted = submittedValue !== undefined && submittedValue > 0 && submittedValue >= (habit.targetCount || 1);
+    const newValueForEntry = submittedValue; // Store the actual value entered, or undefined if cleared
+
+    // Construct the new progress state *before* calling side effects
+    let newAllProgress = { ...allProgress };
+    let updatedHabitSpecificProgressList: DailyProgress[];
 
     if (entryIndex !== -1) {
-      newAllProgress[habitId] = habitSpecificProgress.map((p, i) =>
-        i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
-      );
-    } else if (isNowCompleted) {
-      newAllProgress[habitId] = [...habitSpecificProgress, { date, completed: true, value: newValueForEntry }];
+        updatedHabitSpecificProgressList = currentProgressForHabit.map((p, i) =>
+            i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
+        );
+    } else {
+        updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
     }
-    if (newAllProgress[habitId]) {
-        newAllProgress[habitId].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }
+    updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    newAllProgress[habitId] = updatedHabitSpecificProgressList;
     
-    setAllProgress(newAllProgress);
+    setAllProgress(newAllProgress); // Apply the state update for the grid
 
-    await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, isNowCompleted);
+    // Determine if this action specifically marked the habit as *newly* completed
+    // (was not complete before, or value changed to meet target)
+    const justMarkedComplete = !wasPreviouslyCompleted && isNowCompleted;
+    const justMarkedIncomplete = wasPreviouslyCompleted && !isNowCompleted;
+
+    await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, justMarkedComplete || (isNowCompleted && submittedValue !== previousValue));
+
 
     setIsInputValueModalOpen(false);
     setInputValueModalContext(null);
@@ -311,13 +324,16 @@ export default function HabitForgeApp() {
         return;
     }
 
+    // For "yes/no" habits
     const currentProgressForHabit = allProgress[habitId] || [];
     const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
     const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
     const isNowCompleted = !wasPreviouslyCompleted;
 
-    const newAllProgress = { ...allProgress };
+    // Construct the new progress state *before* calling side effects
+    let newAllProgress = { ...allProgress };
     let updatedHabitSpecificProgressList: DailyProgress[];
+
     if (entryIndex !== -1) {
         updatedHabitSpecificProgressList = currentProgressForHabit.map((p, i) =>
             i === entryIndex ? { ...p, completed: isNowCompleted } : p
@@ -328,8 +344,9 @@ export default function HabitForgeApp() {
     updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     newAllProgress[habitId] = updatedHabitSpecificProgressList;
     
-    setAllProgress(newAllProgress);
+    setAllProgress(newAllProgress); // Apply the state update for the grid
 
+    // For yes/no, isNowCompleted directly tells if it was *just* marked complete (if it wasn't before)
     await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, isNowCompleted);
   };
 
@@ -364,7 +381,7 @@ export default function HabitForgeApp() {
                 variant="ghost"
                 size="icon"
                 className="text-primary hover:text-primary/80 w-8 h-8 ml-1"
-                onClick={() => alert('Bookmark feature coming soon!')}
+                onClick={() => toast({ title: "Bookmark", description: "This feature is not yet implemented." })}
                 aria-label="Bookmark"
             >
                 <Bookmark className="w-5 h-5" />
@@ -475,7 +492,3 @@ export default function HabitForgeApp() {
     </div>
   );
 }
-
-    
-
-    
