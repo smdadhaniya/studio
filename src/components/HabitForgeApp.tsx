@@ -4,7 +4,6 @@
 import type { Habit, HabitProgress, UserProfile, PresetHabitFormData, DailyProgress } from '@/lib/types';
 import type { HabitFormData } from '@/components/habit/HabitForm';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-// Removed useRouter as it's no longer needed for report navigation
 import { loadState, saveState } from '@/lib/localStorageUtils';
 import { calculateStreak, calculateLevel, checkAndAwardBadges, getInitialUserProfile } from '@/lib/habitUtils';
 import { CreateHabitModal } from '@/components/habit/CreateHabitModal';
@@ -12,7 +11,7 @@ import { SetupModal } from '@/components/user/SetupModal';
 import { HabitTable } from '@/components/habit/HabitTable';
 import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { InputValueModal } from '@/components/habit/InputValueModal';
-import { HabitReportModal } from '@/components/habit/HabitReportModal'; // New import
+import { HabitReportModal } from '@/components/habit/HabitReportModal';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -50,24 +49,25 @@ export default function HabitForgeApp() {
   const [inputValueModalContext, setInputValueModalContext] = useState<{ habitId: string, date: string, habit: Habit, currentValue?: number } | null>(null);
   const [isBookmarkPopoverOpen, setIsBookmarkPopoverOpen] = useState(false);
 
-  // State for the report modal
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedHabitForReport, setSelectedHabitForReport] = useState<Habit | null>(null);
   const [reportModalProgress, setReportModalProgress] = useState<DailyProgress[]>([]);
 
 
   const { requestPermission, showNotification, permission } = useNotifications();
-  // const router = useRouter(); // Removed router
 
   useEffect(() => {
     const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
     const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
       let iconName = typeof h.icon === 'string' ? h.icon : undefined;
       if (iconName && !HABIT_LUCIDE_ICONS_LIST.find(item => item.name === iconName)) {
-        iconName = undefined;
+        iconName = undefined; // Remove icon if not found in current list
       }
       return {
         ...h,
+        id: h.id || crypto.randomUUID(), // Ensure ID exists
+        createdAt: h.createdAt || new Date().toISOString(), // Ensure createdAt exists
+        description: h.description || '', // Ensure description exists
         icon: iconName,
         color: (typeof h.color === 'string' && HABIT_COLORS.includes(h.color))
                ? h.color
@@ -82,13 +82,12 @@ export default function HabitForgeApp() {
     setAllProgress(loadedProgress);
 
     const loadedProfile = loadState<UserProfile>(USER_PROFILE_KEY, getInitialUserProfile());
-    setUserProfile(loadedProfile);
+    setUserProfile(prev => ({...prev, ...loadedProfile})); // Merge to ensure new fields like hasCompletedSetup exist
 
     const bookmarkedDateString = loadState<string | null>(BOOKMARKED_VIEW_DATE_KEY, null);
     if (bookmarkedDateString) {
       setDisplayedMonth(startOfMonth(new Date(bookmarkedDateString)));
     }
-
 
     if (!loadedProfile.hasCompletedSetup) {
       setIsSetupModalOpen(true);
@@ -106,7 +105,8 @@ export default function HabitForgeApp() {
     setUserProfile(prev => ({ ...prev, userName: effectiveName, hasCompletedSetup: true }));
 
     const habitsToAdd: Habit[] = [];
-    if (selectedPresetsData.length > 0 && (isInitialSetup || !isEditProfileModalOpen)) {
+    // Only add preset habits if it's the initial setup or if explicitly adding presets outside of profile name edit
+    if (selectedPresetsData.length > 0 && (isInitialSetup || (!isInitialSetup && !isEditProfileModalOpen))) {
         selectedPresetsData.forEach((preset) => {
             const existingHabitByTitle = habits.find(h => h.title === preset.title);
             if (!existingHabitByTitle) {
@@ -125,13 +125,12 @@ export default function HabitForgeApp() {
         });
     }
 
-
     if (habitsToAdd.length > 0) {
       setHabits(prev => [...prev, ...habitsToAdd]);
       toast({ title: isInitialSetup ? `Welcome, ${effectiveName}!` : "Presets Added!", description: `${habitsToAdd.length} new habit(s) added.` });
     } else if (isInitialSetup) {
       toast({ title: `Welcome, ${effectiveName}!`, description: "You can add habits using the 'Add New Habit' button." });
-    } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) {
+    } else if (isEditProfileModalOpen && selectedPresetsData.length === 0) { // This case is when only name is edited
         toast({ title: `Profile name updated to ${effectiveName}!` });
     } else if (!isEditProfileModalOpen && selectedPresetsData.length > 0 && habitsToAdd.length === 0) {
         toast({ title: "No New Habits Added", description: "Selected presets might already exist." });
@@ -143,9 +142,9 @@ export default function HabitForgeApp() {
   };
 
   const handleHabitFormSubmit = (data: HabitFormData | PresetHabitFormData[]) => {
-    if (Array.isArray(data)) {
+    if (Array.isArray(data)) { // Handling PresetHabitFormData[]
       const habitsToAdd: Habit[] = data
-        .filter(preset => !habits.some(h => h.title === preset.title))
+        .filter(preset => !habits.some(h => h.title === preset.title)) // Avoid duplicates by title
         .map((preset, indexOffset) => ({
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
@@ -154,7 +153,7 @@ export default function HabitForgeApp() {
           trackingFormat: preset.trackingFormat,
           measurableUnit: preset.trackingFormat === 'measurable' ? preset.measurableUnit : undefined,
           targetCount: preset.trackingFormat === 'measurable' ? preset.targetCount : undefined,
-          icon: preset.icon,
+          icon: preset.icon, // icon is a string (name)
           color: HABIT_COLORS[(habits.length + indexOffset) % HABIT_COLORS.length],
       }));
 
@@ -164,7 +163,7 @@ export default function HabitForgeApp() {
       } else {
         toast({ title: "No New Habits Added", description: "Selected presets might already exist or none were selected." });
       }
-    } else { // Single HabitFormData
+    } else { // Handling single HabitFormData for custom habit
       const newHabit: Habit = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
@@ -173,7 +172,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon,
+        icon: data.icon, // icon is a string (name)
         color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
       };
       setHabits(prev => [...prev, newHabit]);
@@ -191,7 +190,8 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon,
+        icon: data.icon, // icon is a string (name)
+        // Color is not updated via this form
       } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -231,11 +231,11 @@ export default function HabitForgeApp() {
       if (window.confirm("FINAL CONFIRMATION: This will permanently erase all app data. There's no going back. Are you sure?")) {
         setHabits([]);
         setAllProgress({});
-        setUserProfile(getInitialUserProfile());
+        setUserProfile(getInitialUserProfile()); // This will set hasCompletedSetup to false
         saveState(BOOKMARKED_VIEW_DATE_KEY, null);
         setDisplayedMonth(startOfMonth(new Date())); // Reset displayed month
         toast({ title: "Application Reset", description: "All your data has been cleared. Welcome back!", variant: "destructive", duration: 7000 });
-        setIsSetupModalOpen(true);
+        setIsSetupModalOpen(true); // Trigger setup modal
       }
     }
   };
@@ -247,39 +247,44 @@ export default function HabitForgeApp() {
 
   const processHabitCompletionEffects = async (
     habit: Habit,
-    updatedProgressForEffects: HabitProgress,
-    previousUserProfile: UserProfile,
-    date: string,
-    triggerPositiveReinforcement: boolean,
-    oldStreak: number
+    updatedProgressForEffects: HabitProgress, // Use this for calculations
+    previousUserProfile: UserProfile, // User profile *before* this toggle's direct XP gain
+    date: string, // The date being toggled
+    triggerPositiveReinforcement: boolean, // Whether this action directly leads to positive feedback
+    oldStreak: number // Streak *before* this toggle
   ) => {
     let userProfileAfterToggle = { ...previousUserProfile };
 
+    // 1. Apply direct XP gain from this completion
     if (triggerPositiveReinforcement) {
       userProfileAfterToggle.xp += XP_PER_COMPLETION;
       toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
     }
 
+    // 2. Check for new badges (based on the updated progress and potentially new XP/level)
     const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
-      userProfileAfterToggle, habits, updatedProgressForEffects
+      userProfileAfterToggle, habits, updatedProgressForEffects // Pass habits and full updated progress
     );
-    userProfileAfterToggle = profileWithBadges;
+    userProfileAfterToggle = profileWithBadges; // This profile now includes XP from badges
 
+    // 3. Calculate final level based on all XP (original + completion + badges)
     const finalXp = userProfileAfterToggle.xp;
     const { level: finalLevel } = calculateLevel(finalXp);
-    const oldLevel = previousUserProfile.level;
+    const oldLevel = previousUserProfile.level; // Compare with level *before* any changes from this toggle
     userProfileAfterToggle.level = finalLevel;
 
 
+    // 4. Notifications for badges and AI messages
     if (newBadges.length > 0) {
       newBadges.forEach(badge => {
         toast({ title: "Achievement Unlocked!", description: `You earned the "${badge.name}" badge!` });
         showNotification("Achievement Unlocked!", { body: `You earned the "${badge.name}" badge!` });
       });
     }
+    
+    const newStreakAfterUpdate = calculateStreak(habit.id, updatedProgressForEffects); // Recalculate streak with the latest progress
+    const milestoneReached = newBadges.length > 0 || (newStreakAfterUpdate > 0 && newStreakAfterUpdate % 5 === 0) || (finalLevel > oldLevel) || (oldStreak === 0 && newStreakAfterUpdate === 1 && triggerPositiveReinforcement) ;
 
-    const newStreakAfterUpdate = calculateStreak(habit.id, updatedProgressForEffects);
-    const milestoneReached = newBadges.length > 0 || (newStreakAfterUpdate > 0 && newStreakAfterUpdate % 5 === 0) || (finalLevel > oldLevel) || (oldStreak === 0 && newStreakAfterUpdate === 1 && triggerPositiveReinforcement);
 
     if (triggerPositiveReinforcement && milestoneReached) {
       try {
@@ -294,13 +299,14 @@ export default function HabitForgeApp() {
       } catch (error) {
         console.error("Error generating motivational message:", error);
       }
-    } else if (!triggerPositiveReinforcement) {
-      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) { // Condition for streak broken
+    } else if (!triggerPositiveReinforcement) { // This case covers marking as incomplete or reducing value for measurable
+      // Check if streak was broken by this action
+      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) {
         toast({ title: "Streak Broken", description: `For ${habit.title}. Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
             habitName: habit.title,
-            streakLength: oldStreak,
+            streakLength: oldStreak, // Report the streak that was broken
           });
           toast({ title: "A Little Setback...", description: aiMessage.message, duration: 7000 });
           showNotification("Streak Broken", { body: `For ${habit.title}. ${aiMessage.message}` });
@@ -309,7 +315,7 @@ export default function HabitForgeApp() {
         }
       }
     }
-    setUserProfile(userProfileAfterToggle);
+    setUserProfile(userProfileAfterToggle); // Set the final updated profile
   };
 
   const handleInputValueSubmit = async (submittedValue?: number) => {
@@ -317,15 +323,22 @@ export default function HabitForgeApp() {
     const { habitId, date, habit } = inputValueModalContext;
 
     const oldStreak = calculateStreak(habitId, allProgress);
+    const previousUserProfileBeforeEffects = { ...userProfile }; // Capture profile state before this specific change
 
     const currentProgressForHabit = allProgress[habitId] || [];
     const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
+    
     const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
     const previousValue = entryIndex !== -1 ? currentProgressForHabit[entryIndex].value : undefined;
 
-    const isNowCompleted = submittedValue !== undefined && submittedValue > 0 && submittedValue >= (habit.targetCount || 1);
+    // Determine completion status for measurable habits based on targetCount
+    const isNowCompleted = habit.trackingFormat === 'measurable' 
+      ? (submittedValue !== undefined && submittedValue > 0 && submittedValue >= (habit.targetCount || 1))
+      : (submittedValue !== undefined && submittedValue > 0); // For non-existent 'simple measurable', treat any positive as complete
+
     const newValueForEntry = submittedValue;
 
+    // Create the new progress state
     let newAllProgress = { ...allProgress };
     let updatedHabitSpecificProgressList: DailyProgress[];
 
@@ -334,18 +347,30 @@ export default function HabitForgeApp() {
             i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
         );
     } else {
-        updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
+        // Only add if there's a value or it's explicitly marked (though this modal implies value input)
+        if (newValueForEntry !== undefined) {
+            updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
+        } else {
+            updatedHabitSpecificProgressList = [...currentProgressForHabit];
+        }
     }
     updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     newAllProgress[habitId] = updatedHabitSpecificProgressList;
+    
+    setAllProgress(newAllProgress); // Update state immediately for UI responsiveness
 
-    setAllProgress(newAllProgress);
-
+    // Determine if positive reinforcement should be triggered
+    // This is true if:
+    // 1. The habit was not completed before and is now completed.
+    // 2. The habit was already completed (measurable), and the new value is greater than the previous value.
     const wasJustNewlyCompleted = !wasPreviouslyCompleted && isNowCompleted;
-    const valueIncreasedWhileCompleted = wasPreviouslyCompleted && isNowCompleted && submittedValue !== undefined && previousValue !== undefined && submittedValue > previousValue;
+    const valueIncreasedWhileCompleted = wasPreviouslyCompleted && isNowCompleted && 
+                                          submittedValue !== undefined && previousValue !== undefined && 
+                                          submittedValue > previousValue;
     const triggerPositiveReinforcement = wasJustNewlyCompleted || valueIncreasedWhileCompleted;
-
-    await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, triggerPositiveReinforcement, oldStreak);
+    
+    // Call effects using the newAllProgress and the user profile *before* this specific toggle
+    await processHabitCompletionEffects(habit, newAllProgress, previousUserProfileBeforeEffects, date, triggerPositiveReinforcement, oldStreak);
 
     setIsInputValueModalOpen(false);
     setInputValueModalContext(null);
@@ -356,25 +381,30 @@ export default function HabitForgeApp() {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
 
+    // If measurable, open the input modal instead of direct toggle
     if (habit.trackingFormat === 'measurable') {
         const currentEntry = (allProgress[habitId] || []).find(p => p.date === date);
         openInputValueModal(habit, date, currentEntry?.value);
         return;
     }
 
+    // For "yes/no" habits:
     const oldStreak = calculateStreak(habitId, allProgress);
+    const previousUserProfileBeforeEffects = { ...userProfile };
 
     const currentProgressForHabit = allProgress[habitId] || [];
     const entryIndex = currentProgressForHabit.findIndex(p => p.date === date);
+    
     const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
-    const isNowCompleted = !wasPreviouslyCompleted;
+    const isNowCompleted = !wasPreviouslyCompleted; // Simple toggle for yes/no
 
+    // Create the new progress state
     let newAllProgress = { ...allProgress };
     let updatedHabitSpecificProgressList: DailyProgress[];
 
     if (entryIndex !== -1) {
         updatedHabitSpecificProgressList = currentProgressForHabit.map((p, i) =>
-            i === entryIndex ? { ...p, completed: isNowCompleted } : p
+            i === entryIndex ? { ...p, completed: isNowCompleted } : p // No value to update for yes/no
         );
     } else {
         updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted }];
@@ -384,8 +414,9 @@ export default function HabitForgeApp() {
 
     setAllProgress(newAllProgress);
 
-    const triggerPositiveReinforcement = isNowCompleted;
-    await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, triggerPositiveReinforcement, oldStreak);
+    // For "yes/no", positive reinforcement is triggered if it's now completed.
+    const triggerPositiveReinforcement = isNowCompleted; 
+    await processHabitCompletionEffects(habit, newAllProgress, previousUserProfileBeforeEffects, date, triggerPositiveReinforcement, oldStreak);
   };
 
 
@@ -408,17 +439,18 @@ export default function HabitForgeApp() {
     }
   };
 
-  if (!userProfile.hasCompletedSetup && !isEditProfileModalOpen) {
+  if (!userProfile.hasCompletedSetup && !isSetupModalOpen && !isEditProfileModalOpen) { // Ensure setup modal is shown if needed and not already open
     return (
       <SetupModal
-        open={isSetupModalOpen}
-        onOpenChange={setIsSetupModalOpen}
+        open={true} // Force open if conditions met
+        onOpenChange={setIsSetupModalOpen} // Allow closing if user completes it
         onSubmit={handleSetupSubmit}
         currentUserName={userProfile.userName}
         isEditing={false}
       />
     );
   }
+
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -516,11 +548,11 @@ export default function HabitForgeApp() {
             )}
             <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
           </div>
-          <div className="flex items-center justify-center md:justify-end gap-2 mt-4 md:mt-0">
+          <div className="flex items-center justify-center w-full sm:w-auto md:justify-end gap-2 mt-4 md:mt-0">
             <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Previous month" className="w-8 h-8">
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <span className="text-lg font-semibold text-foreground tabular-nums min-w-[120px] text-center">
+            <span className="text-lg font-semibold text-foreground tabular-nums text-center min-w-[100px] sm:min-w-[110px]">
               {format(displayedMonth, "MMMM yyyy")}
             </span>
             <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Next month" className="w-8 h-8">
@@ -543,7 +575,7 @@ export default function HabitForgeApp() {
         onOpenChange={isEditProfileModalOpen ? setIsEditProfileModalOpen : setIsSetupModalOpen}
         onSubmit={handleSetupSubmit}
         currentUserName={userProfile.userName}
-        isEditing={isEditProfileModalOpen || (userProfile.hasCompletedSetup && !isSetupModalOpen)}
+        isEditing={isEditProfileModalOpen || (userProfile.hasCompletedSetup && !isSetupModalOpen)} // True if editing or if setup done and not initial setup mode
       />
 
       <InputValueModal
@@ -560,8 +592,8 @@ export default function HabitForgeApp() {
         onOpenChange={setIsReportModalOpen}
         habit={selectedHabitForReport}
         habitDailyProgress={reportModalProgress}
-        allHabits={habits}
-        allProgressData={allProgress}
+        allHabits={habits} // Pass all habits for potential future comparisons
+        allProgressData={allProgress} // Pass all progress for comprehensive calculations if needed
       />
 
 
@@ -571,7 +603,7 @@ export default function HabitForgeApp() {
           allProgress={allProgress}
           displayedMonth={displayedMonth}
           onToggleComplete={handleToggleComplete}
-          onOpenInputValueModal={openInputValueModal}
+          onOpenInputValueModal={openInputValueModal} // Pass the new handler
           onEditHabit={handleEditHabit}
           onDeleteHabit={handleDeleteHabit}
           onShowReport={handleShowReport}
@@ -581,3 +613,4 @@ export default function HabitForgeApp() {
     </div>
   );
 }
+
