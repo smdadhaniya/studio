@@ -43,7 +43,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { ChartContainer, ChartTooltipContent, ChartLegendContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltipContent, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 
 interface HabitReportModalProps {
@@ -51,7 +51,7 @@ interface HabitReportModalProps {
   onOpenChange: (open: boolean) => void;
   habit: Habit | null;
   habitDailyProgress: DailyProgress[];
-  allHabits: Habit[]; 
+  allHabits: Habit[];
   allProgressData: HabitProgress;
 }
 
@@ -63,7 +63,7 @@ export function HabitReportModal({
   onOpenChange,
   habit,
   habitDailyProgress,
-  allHabits, 
+  allHabits,
   allProgressData,
 }: HabitReportModalProps) {
   const [clientRendered, setClientRendered] = useState(false);
@@ -108,7 +108,7 @@ export function HabitReportModal({
     }
     return null;
   }, [habit, habitDailyProgress]);
-  
+
   const successPieData = useMemo(() => {
     if (overallSuccessData.totalTrackedDays === 0) return []; // Avoid pie chart with no data
     return [
@@ -116,6 +116,18 @@ export function HabitReportModal({
       { name: 'Missed', value: Math.max(0, overallSuccessData.missedDays), fill: PIE_CHART_COLORS[1]}, // Ensure missed is not negative
     ];
   }, [overallSuccessData]);
+
+   const successPieChartConfig = useMemo(() => ({
+    completed: {
+      label: 'Completed',
+      color: PIE_CHART_COLORS[0],
+    },
+    missed: {
+      label: 'Missed',
+      color: PIE_CHART_COLORS[1],
+    },
+  }) as ChartConfig, []);
+
 
   const dayOfWeekData = useMemo(() => {
     return getCompletionsByDayOfWeek(habitDailyProgress);
@@ -216,18 +228,20 @@ export function HabitReportModal({
                   </CardHeader>
                   <CardContent className="h-[200px] md:h-[250px]">
                     {successPieData.length > 0 && overallSuccessData.totalTrackedDays > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <RechartsTooltip content={<ChartTooltipContent formatter={(value, name) => <div className="flex flex-col"><span className="font-semibold">{name}</span><span>{value} days</span></div>} />} />
-                                <Pie data={successPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} labelLine={false}
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                >
-                                {successPieData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} stroke={entry.fill === PIE_CHART_COLORS[1] ? "hsl(var(--border))" : undefined} />
-                                ))}
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
+                        <ChartContainer config={successPieChartConfig} className="w-full h-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <RechartsTooltip content={<ChartTooltipContent formatter={(value, name) => <div className="flex flex-col"><span className="font-semibold">{name}</span><span>{value} days</span></div>} />} />
+                                    <Pie data={successPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} labelLine={false}
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    >
+                                    {successPieData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} stroke={entry.fill === PIE_CHART_COLORS[1] ? "hsl(var(--border))" : undefined} />
+                                    ))}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
                      ) : <p className="text-sm text-muted-foreground text-center pt-10">Not enough data for success rate.</p>}
                   </CardContent>
                 </Card>
@@ -349,7 +363,7 @@ export function HabitReportModal({
                   </CardContent>
                 </Card>
             </div>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center"><ListChecks className="w-5 h-5 mr-2 text-primary" />Completion Log</CardTitle>
@@ -392,4 +406,3 @@ export function HabitReportModal({
     </Dialog>
   );
 }
-
