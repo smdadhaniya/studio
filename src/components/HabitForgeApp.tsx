@@ -14,20 +14,11 @@ import { BadgeDisplay } from '@/components/user/BadgeDisplay';
 import { InputValueModal } from '@/components/habit/InputValueModal';
 import { HabitReportModal } from '@/components/habit/HabitReportModal';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message';
-import { PlusCircle, BellRing, Settings, ChevronLeft, ChevronRight, Trash2, User, MessageSquare, Bookmark, Cog, RefreshCcw } from 'lucide-react'; // Flame, Gem removed as they are in global nav
+import { PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react'; 
 import { BADGES, XP_PER_COMPLETION, HABIT_COLORS, HABIT_LUCIDE_ICONS_LIST, DEFAULT_USER_NAME } from '@/lib/constants';
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -49,14 +40,12 @@ export default function HabitForgeApp() {
 
   const [isInputValueModalOpen, setIsInputValueModalOpen] = useState(false);
   const [inputValueModalContext, setInputValueModalContext] = useState<{ habitId: string, date: string, habit: Habit, currentValue?: number } | null>(null);
-  const [isBookmarkPopoverOpen, setIsBookmarkPopoverOpen] = useState(false);
-
+  
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedHabitForReport, setSelectedHabitForReport] = useState<Habit | null>(null);
   const [reportModalProgress, setReportModalProgress] = useState<DailyProgress[]>([]);
 
-  // Subscription state and modal are now handled globally in layout.tsx
-  const { requestPermission, permission } = useNotifications();
+  const { showNotification } = useNotifications();
 
 
   useEffect(() => {
@@ -95,7 +84,6 @@ export default function HabitForgeApp() {
       setDisplayedMonth(startOfMonth(new Date(bookmarkedDateString)));
     }
 
-    // Only trigger initial setup modal if hasCompletedSetup is false
     if (!loadedProfile.hasCompletedSetup) {
       setIsSetupModalOpen(true);
     }
@@ -106,7 +94,6 @@ export default function HabitForgeApp() {
   useEffect(() => { saveState(USER_PROFILE_KEY, userProfile); }, [userProfile]);
 
 
-  // This function handles submission from the initial setup modal
   const handleInitialSetupSubmit = (name: string, selectedPresetsData: PresetHabitFormData[]) => {
     const effectiveName = name.trim() === '' ? (userProfile.userName || DEFAULT_USER_NAME) : name.trim();
     const newProfile: UserProfile = { ...userProfile, userName: effectiveName, hasCompletedSetup: true };
@@ -140,22 +127,15 @@ export default function HabitForgeApp() {
     } else {
       toast({ title: `Welcome, ${effectiveName}!`, description: "You can add habits using the 'Add New Habit' button." });
     }
-    setIsSetupModalOpen(false); // Close initial setup modal
+    setIsSetupModalOpen(false); 
   };
 
-  // This function handles submission from "Edit Profile" in THIS component's settings
-  const handleAppProfileEditSubmit = (name: string, selectedPresetsData: PresetHabitFormData[]) => {
-    // This function from App specific settings should ONLY update the name IF it was for just name
-    // If it was used to add presets (now part of CreateHabitModal), this part is legacy
+  const handleAppProfileEditSubmit = (name: string) => {
     const effectiveName = name.trim() === '' ? (userProfile.userName || DEFAULT_USER_NAME) : name.trim();
-    const newProfile: UserProfile = { ...userProfile, userName: effectiveName, hasCompletedSetup: true }; // Ensure setup is marked complete
+    const newProfile: UserProfile = { ...userProfile, userName: effectiveName, hasCompletedSetup: true }; 
     setUserProfile(newProfile);
     saveState(USER_PROFILE_KEY, newProfile);
     toast({ title: `Profile name updated to ${effectiveName}!` });
-
-    // Logic for adding presets from SetupModal if isEditing was false is handled by handleInitialSetupSubmit
-    // If presets are added via CreateHabitModal, handleHabitFormSubmit handles it.
-    // This specific path (editing profile within app) should ideally not add presets.
     setIsEditProfileModalOpenFromApp(false);
   };
 
@@ -191,7 +171,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon,
+        icon: data.icon, // Icon is now optional from the form
         color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
       };
       setHabits(prev => [...prev, newHabit]);
@@ -209,7 +189,7 @@ export default function HabitForgeApp() {
         trackingFormat: data.trackingFormat,
         measurableUnit: data.trackingFormat === 'measurable' ? data.measurableUnit : undefined,
         targetCount: data.trackingFormat === 'measurable' ? data.targetCount : undefined,
-        icon: data.icon,
+        icon: data.icon, // Update icon, could be undefined if removed
       } : h));
      setIsCreateHabitModalOpen(false);
      setEditingHabit(null);
@@ -249,13 +229,13 @@ export default function HabitForgeApp() {
       if (window.confirm("FINAL CONFIRMATION: This will permanently erase all app data. There's no going back. Are you sure?")) {
         setHabits([]);
         setAllProgress({});
-        const initialProfile = getInitialUserProfile(); // Get fresh initial profile
+        const initialProfile = getInitialUserProfile(); 
         setUserProfile(initialProfile);
-        saveState(USER_PROFILE_KEY, initialProfile); // Save the reset profile
+        saveState(USER_PROFILE_KEY, initialProfile); 
         saveState(BOOKMARKED_VIEW_DATE_KEY, null);
         setDisplayedMonth(startOfMonth(new Date()));
         toast({ title: "Application Reset", description: "All your data has been cleared. Welcome back!", variant: "destructive", duration: 7000 });
-        setIsSetupModalOpen(true); // Trigger initial setup modal
+        setIsSetupModalOpen(true); 
       }
     }
   };
@@ -277,9 +257,7 @@ export default function HabitForgeApp() {
 
     if (triggerPositiveReinforcement) {
       userProfileAfterToggle.xp += XP_PER_COMPLETION;
-      if (triggerPositiveReinforcement) {
-         toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
-      }
+      toast({ title: "Great Job!", description: `+${XP_PER_COMPLETION} XP for ${habit.title}!` });
     }
 
     const { updatedProfile: profileWithBadges, newBadges } = checkAndAwardBadges(
@@ -318,7 +296,7 @@ export default function HabitForgeApp() {
         console.error("Error generating motivational message:", error);
       }
     } else if (!triggerPositiveReinforcement) {
-      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) {
+      if (oldStreak > 0 && newStreakAfterUpdate < oldStreak) { // Check if streak actually broke
         toast({ title: "Streak Broken", description: `For ${habit.title}. Don't worry, you can start a new one!`, variant: "destructive" });
         try {
           const aiMessage = await empatheticMessage({
@@ -333,7 +311,7 @@ export default function HabitForgeApp() {
       }
     }
     setUserProfile(userProfileAfterToggle);
-    saveState(USER_PROFILE_KEY, userProfileAfterToggle); // Save profile after effects
+    saveState(USER_PROFILE_KEY, userProfileAfterToggle); 
   };
 
   const handleInputValueSubmit = async (submittedValue?: number) => {
@@ -363,10 +341,10 @@ export default function HabitForgeApp() {
             i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
         );
     } else {
-        if (newValueForEntry !== undefined) {
+        if (newValueForEntry !== undefined) { // Only add if there's a value
             updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
         } else {
-            updatedHabitSpecificProgressList = [...currentProgressForHabit];
+            updatedHabitSpecificProgressList = [...currentProgressForHabit]; // No change if no value and no existing entry
         }
     }
     updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -406,7 +384,7 @@ export default function HabitForgeApp() {
 
     const wasPreviouslyCompleted = entryIndex !== -1 ? currentProgressForHabit[entryIndex].completed : false;
     const isNowCompleted = !wasPreviouslyCompleted;
-    const newValueForEntry = isNowCompleted ? 1 : undefined;
+    const newValueForEntry = isNowCompleted ? 1 : undefined; // Yes/no uses 1 for completed
 
 
     let newAllProgress = { ...allProgress };
@@ -417,10 +395,10 @@ export default function HabitForgeApp() {
             i === entryIndex ? { ...p, completed: isNowCompleted, value: newValueForEntry } : p
         );
     } else {
-        if (isNowCompleted) {
+        if (isNowCompleted) { // Only add if now completed
             updatedHabitSpecificProgressList = [...currentProgressForHabit, { date, completed: isNowCompleted, value: newValueForEntry }];
         } else {
-            updatedHabitSpecificProgressList = [...currentProgressForHabit];
+            updatedHabitSpecificProgressList = [...currentProgressForHabit]; // No change if toggling off a non-existent entry
         }
     }
     updatedHabitSpecificProgressList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -452,16 +430,14 @@ export default function HabitForgeApp() {
     }
   };
 
-  // If initial setup is not complete, show the setup modal.
-  // The global layout now handles its own "Edit Profile" so isSetupModalOpen only refers to initial.
   if (!userProfile.hasCompletedSetup && !isSetupModalOpen && !isEditProfileModalOpenFromApp) {
     return (
       <SetupModal
-        open={true} // Controlled by this condition
-        onOpenChange={setIsSetupModalOpen} // This modal is for initial setup
+        open={true} 
+        onOpenChange={setIsSetupModalOpen} 
         onSubmit={handleInitialSetupSubmit}
         currentUserName={userProfile.userName}
-        isEditing={false} // Explicitly false for initial setup
+        isEditing={false} 
       />
     );
   }
@@ -469,10 +445,6 @@ export default function HabitForgeApp() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      {/* Header with Logo, Bookmark - this part is removed as it's now global */}
-      {/* The global nav is in layout.tsx */}
-
-      {/* User info, Month Navigation, Add Habit Button */}
       <header className="mb-8 p-4 rounded-lg bg-card text-card-foreground">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-x-6 gap-y-4">
            <div className="flex-1 min-w-0">
@@ -484,76 +456,6 @@ export default function HabitForgeApp() {
             <BadgeDisplay unlockedBadges={unlockedBadges} allPossibleBadges={BADGES} />
           </div>
           <div className="flex flex-wrap items-center justify-center w-full sm:w-auto md:justify-end gap-2 mt-4 md:mt-0">
-            {/* Bookmark Popover */}
-            <Popover open={isBookmarkPopoverOpen} onOpenChange={setIsBookmarkPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-primary hover:text-primary/80 w-8 h-8"
-                  aria-label="Bookmark Current View"
-                >
-                  <Bookmark className="w-5 h-5" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const monthToSave = format(displayedMonth, 'yyyy-MM-dd');
-                    saveState(BOOKMARKED_VIEW_DATE_KEY, monthToSave);
-                    toast({
-                        title: "View Bookmarked!",
-                        description: `The view for ${format(displayedMonth, "MMMM yyyy")} has been saved.`
-                    });
-                    setIsBookmarkPopoverOpen(false);
-                  }}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  Save Current View
-                </Button>
-              </PopoverContent>
-            </Popover>
-            {/* Page-Specific Settings Dropdown */}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="text-sm w-9 h-9">
-                    <Cog className="w-5 h-5" />
-                    <span className="sr-only">Page Settings</span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Page Settings</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setIsEditProfileModalOpenFromApp(true)}>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Edit Profile Name (App)</span>
-                    </DropdownMenuItem>
-                    {permission !== 'granted' && (
-                        <DropdownMenuItem onSelect={requestPermission}>
-                            <BellRing className="mr-2 h-4 w-4" />
-                            <span>Enable App Notifications</span>
-                        </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                    onSelect={handleDeleteAllHabits}
-                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                    >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>Delete All Habits</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                    onSelect={handleResetEverything}
-                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                    >
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    <span>Reset Everything</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-
-
             {/* Month Navigation and Add New Habit Button */}
             <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Previous month" className="w-8 h-8">
@@ -581,7 +483,6 @@ export default function HabitForgeApp() {
         onHabitUpdate={handleHabitUpdate}
       />
 
-      {/* This SetupModal is for initial setup only */}
       <SetupModal
         open={isSetupModalOpen}
         onOpenChange={setIsSetupModalOpen}
@@ -589,11 +490,10 @@ export default function HabitForgeApp() {
         currentUserName={userProfile.userName}
         isEditing={false}
       />
-      {/* This SetupModal is for editing profile name from app-specific settings */}
        <SetupModal
         open={isEditProfileModalOpenFromApp}
         onOpenChange={setIsEditProfileModalOpenFromApp}
-        onSubmit={handleAppProfileEditSubmit}
+        onSubmit={(name, _presets) => handleAppProfileEditSubmit(name)} // Presets are ignored here
         currentUserName={userProfile.userName}
         isEditing={true}
       />
@@ -617,8 +517,6 @@ export default function HabitForgeApp() {
         allProgressData={allProgress}
       />
 
-      {/* SubscriptionModal is now handled by RootLayout */}
-
       <main>
         <HabitTable
           habits={habits}
@@ -636,4 +534,3 @@ export default function HabitForgeApp() {
   );
 }
 
-    
