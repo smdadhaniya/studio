@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"; // Added Popover
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { empatheticMessage } from '@/ai/flows/empathetic-message';
@@ -44,7 +45,7 @@ export default function HabitForgeApp() {
 
   const [isInputValueModalOpen, setIsInputValueModalOpen] = useState(false);
   const [inputValueModalContext, setInputValueModalContext] = useState<{ habitId: string, date: string, habit: Habit, currentValue?: number } | null>(null);
-
+  const [isBookmarkPopoverOpen, setIsBookmarkPopoverOpen] = useState(false); // State for bookmark popover
 
   const { requestPermission, showNotification, permission } = useNotifications();
 
@@ -304,7 +305,7 @@ export default function HabitForgeApp() {
     // Determine if this action specifically marked the habit as *newly* completed
     // (was not complete before, or value changed to meet target)
     const justMarkedComplete = !wasPreviouslyCompleted && isNowCompleted;
-    const justMarkedIncomplete = wasPreviouslyCompleted && !isNowCompleted;
+    // const justMarkedIncomplete = wasPreviouslyCompleted && !isNowCompleted; // Not directly used, but available
 
     await processHabitCompletionEffects(habit, newAllProgress, userProfile, date, justMarkedComplete || (isNowCompleted && submittedValue !== previousValue));
 
@@ -377,15 +378,30 @@ export default function HabitForgeApp() {
             <h1 className="text-lg font-bold text-primary">
                 Habit Track
             </h1>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="text-primary hover:text-primary/80 w-8 h-8 ml-1"
-                onClick={() => toast({ title: "Bookmark", description: "This feature is not yet implemented." })}
-                aria-label="Bookmark"
-            >
-                <Bookmark className="w-5 h-5" />
-            </Button>
+            <Popover open={isBookmarkPopoverOpen} onOpenChange={setIsBookmarkPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-primary hover:text-primary/80 w-8 h-8 ml-1"
+                  aria-label="Bookmark"
+                >
+                  <Bookmark className="w-5 h-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    toast({ title: "Bookmark Saved!", description: "Your current view has been bookmarked (simulated)." });
+                    setIsBookmarkPopoverOpen(false);
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Save Bookmark
+                </Button>
+              </PopoverContent>
+            </Popover>
         </div>
         <div className="flex items-center gap-3">
             <Button onClick={() => { setEditingHabit(null); setIsCreateHabitModalOpen(true); }} className="bg-accent hover:bg-accent/90 text-accent-foreground text-sm">
@@ -411,7 +427,7 @@ export default function HabitForgeApp() {
                     <span>Enable Notifications</span>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onSelect={() => alert('Feedback form coming soon!')}>
+                <DropdownMenuItem onSelect={() => toast({title: "Feedback", description: "This feature is coming soon!"})}>
                   <MessageSquare className="mr-2 h-4 w-4" />
                   <span>Share Feedback</span>
                 </DropdownMenuItem>
