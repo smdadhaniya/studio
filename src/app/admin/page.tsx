@@ -31,7 +31,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    if (window.confirm(\`Are you sure you want to delete user ${userId}? This is a simulated action.\`)) {
+    if (window.confirm(`Are you sure you want to delete user ${userId}? This is a simulated action.`)) {
       toast({ title: "Simulated Action", description: `User ${userId} would be deleted.`, variant: "destructive" });
     }
   };
