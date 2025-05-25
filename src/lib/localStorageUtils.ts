@@ -1,3 +1,4 @@
+
 export function loadState<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') {
     return defaultValue;
@@ -25,3 +26,4 @@ export function saveState<T>(key: string, value: T): void {
     console.warn(`Error saving state for key "${key}" to localStorage:`, error);
   }
 }
+
