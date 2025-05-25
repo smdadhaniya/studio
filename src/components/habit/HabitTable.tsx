@@ -4,7 +4,7 @@
 import type { Habit, HabitProgress, DailyProgress } from '@/lib/types';
 import { useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDate, isToday, isPast, isFuture } from 'date-fns';
-import { Edit3, Trash2, Check, GripVertical, BarChart2 } from 'lucide-react'; // Added BarChart2
+import { Edit3, Trash2, Check, GripVertical, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HABIT_LUCIDE_ICONS_LIST } from '@/lib/constants';
@@ -17,7 +17,7 @@ interface HabitRowProps {
   onOpenInputValueModal: (habit: Habit, date: string, currentValue?: number) => void;
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
-  onShowReport: (habitId: string) => void; // New prop
+  onShowReport: (habitId: string) => void;
 }
 
 function HabitRow({
@@ -28,7 +28,7 @@ function HabitRow({
   onOpenInputValueModal,
   onEditHabit,
   onDeleteHabit,
-  onShowReport, // New prop
+  onShowReport,
 }: HabitRowProps) {
   const habitProgressMap = useMemo(() => {
     const map = new Map<string, DailyProgress>();
@@ -49,78 +49,88 @@ function HabitRow({
       {daysInMonth.map(day => {
         const dateStr = format(day, 'yyyy-MM-dd');
         const dayProgress = habitProgressMap.get(dateStr);
-        const isCompleted = dayProgress?.completed === true;
+        const isCompleted = dayProgress?.completed === true; // True if value >= target for measurable, or simply checked for yes/no
 
-        let cellBackground = 'bg-background hover:bg-muted/50'; 
+        let cellBackground = 'bg-background hover:bg-muted/50';
         let contentColor = 'text-foreground';
         let buttonInnerContent: React.ReactNode = null;
-
         const isDisabledFuture = isFuture(day) && !isToday(day);
 
         if (habit.trackingFormat === 'measurable') {
-          if (isCompleted && dayProgress?.value !== undefined) {
-            buttonInnerContent = <span className="text-xs font-semibold">{String(dayProgress.value)}</span>;
-            contentColor = isToday(day) ? 'text-white' : 'text-white'; 
-            cellBackground = isToday(day) ? 'bg-green-500' : 'bg-slate-600';
-          } else {
-            buttonInnerContent = <GripVertical className="w-3 h-3 text-muted-foreground/70" />; 
+          const enteredValue = dayProgress?.value;
+
+          if (enteredValue !== undefined && enteredValue > 0) { // A positive value has been entered
+            buttonInnerContent = <span className="text-xs font-semibold">{String(enteredValue)}</span>;
+            if (isCompleted) { // Value meets or exceeds target
+              contentColor = 'text-white';
+              cellBackground = isToday(day) ? 'bg-green-500' : 'bg-slate-600'; // Fully completed colors
+            } else { // Value is positive but less than target (partially completed)
+              // Use colors indicating 'not fully complete' but still show value
+              cellBackground = isToday(day) ? 'bg-green-100 hover:bg-green-200' : (isPast(day) ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-100 hover:bg-gray-200');
+              contentColor = isToday(day) ? 'text-green-700' : (isPast(day) ? 'text-red-700' : 'text-gray-500');
+            }
+          } else { // No value, or value is 0 (treated as not started/incomplete)
+            buttonInnerContent = <GripVertical className="w-3 h-3 text-muted-foreground/70" />;
             cellBackground = isToday(day) ? 'bg-green-100 hover:bg-green-200' : (isPast(day) ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-100 hover:bg-gray-200');
             contentColor = isToday(day) ? 'text-green-700' : (isPast(day) ? 'text-red-700' : 'text-gray-500');
           }
-           if (isDisabledFuture) {
-             cellBackground = 'bg-gray-100 cursor-not-allowed';
-             contentColor = 'text-gray-400';
-             buttonInnerContent = <span className="text-xs">-</span>;
-           }
 
-        } else {
-          const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center";
-          let checkboxSquareBg = '';
-          let checkboxSquareBorder = 'border-border'; // Default to theme border
-          
-          if (isToday(day)) {
-              checkboxSquareBg = isCompleted ? 'bg-green-500' : 'bg-green-100';
-              checkboxSquareBorder = isCompleted ? 'border-green-600' : 'border-green-500';
-              contentColor = isCompleted ? 'text-white' : 'text-green-700';
-          } else if (isPast(day)) {
-              checkboxSquareBg = isCompleted ? 'bg-slate-600' : 'bg-red-200'; // Updated for better contrast potentially
-              checkboxSquareBorder = isCompleted ? 'border-slate-700' : 'border-red-500';
-              contentColor = isCompleted ? 'text-white' : 'text-red-700';
-          } else { 
-              checkboxSquareBg = 'bg-gray-100';
-              checkboxSquareBorder = 'border-gray-400';
-              contentColor = 'text-gray-500';
+          if (isDisabledFuture) {
+            cellBackground = 'bg-gray-100 cursor-not-allowed';
+            contentColor = 'text-gray-400';
+            buttonInnerContent = <span className="text-xs">-</span>;
           }
 
+        } else { // 'yes/no' habit
+          const squareBaseClasses = "w-4 h-4 border-2 rounded-sm flex items-center justify-center";
+          let checkboxSquareBg = '';
+          let checkboxSquareBorder = 'border-border';
+
+          if (isToday(day)) {
+            checkboxSquareBg = isCompleted ? 'bg-green-500' : 'bg-green-100';
+            checkboxSquareBorder = isCompleted ? 'border-green-600' : 'border-green-500';
+            contentColor = isCompleted ? 'text-white' : 'text-green-700';
+          } else if (isPast(day)) {
+            checkboxSquareBg = isCompleted ? 'bg-slate-600' : 'bg-red-200';
+            checkboxSquareBorder = isCompleted ? 'border-slate-700' : 'border-red-500';
+            contentColor = isCompleted ? 'text-white' : 'text-red-700';
+          } else {
+            checkboxSquareBg = 'bg-gray-100';
+            checkboxSquareBorder = 'border-gray-400';
+            contentColor = 'text-gray-500';
+          }
+          cellBackground = 'bg-background hover:bg-muted/50'; // Cell button background
+
           buttonInnerContent = (
-              <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
-                  {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />}
-              </div>
+            <div className={cn(squareBaseClasses, checkboxSquareBg, checkboxSquareBorder)}>
+              {isCompleted && <Check className={cn("w-3 h-3", contentColor)} strokeWidth={3} />}
+            </div>
           );
-          cellBackground = 'bg-background hover:bg-muted/50';
-           if (isDisabledFuture) {
-             buttonInnerContent = (
-                <div className={cn(squareBaseClasses, 'bg-gray-100 border-gray-300 opacity-70')}>
-                </div>
-             );
-           }
+          
+          if (isDisabledFuture) {
+            buttonInnerContent = (
+              <div className={cn(squareBaseClasses, 'bg-gray-100 border-gray-300 opacity-70')}>
+              </div>
+            );
+             cellBackground = 'bg-gray-100 cursor-not-allowed'; // ensure button cell also reflects disabled state
+          }
         }
 
         return (
           <td key={dateStr} className="p-0 text-center w-8 h-8">
             <button
               onClick={() => {
-                  if (isDisabledFuture) return;
-                  if (habit.trackingFormat === 'measurable') {
-                      onOpenInputValueModal(habit, dateStr, dayProgress?.value);
-                  } else {
-                      onToggleComplete(habit.id, dateStr);
-                  }
+                if (isDisabledFuture) return;
+                if (habit.trackingFormat === 'measurable') {
+                  onOpenInputValueModal(habit, dateStr, dayProgress?.value);
+                } else {
+                  onToggleComplete(habit.id, dateStr);
+                }
               }}
               disabled={isDisabledFuture}
               className={cn(
                 "w-full h-full flex items-center justify-center text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/70 focus:z-10 relative transition-colors",
-                cellBackground,
+                cellBackground, // This applies to the button filling the TD
                 isDisabledFuture ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               )}
               aria-label={`Log habit ${habit.title} on ${format(day, "MMM d")}`}
@@ -130,7 +140,7 @@ function HabitRow({
           </td>
         );
       })}
-      <td className="p-2 text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[110px] border-l border-border"> {/* Increased min-width slightly */}
+      <td className="p-2 text-foreground align-middle sticky right-0 bg-background group-hover:bg-muted/20 z-[5] min-w-[110px] border-l border-border">
         <div className="flex gap-1 justify-center">
           <Button onClick={() => onEditHabit(habit)} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10" aria-label={`Edit ${habit.title}`}>
             <Edit3 className="w-4 h-4" />
@@ -156,7 +166,7 @@ interface HabitTableProps {
   onOpenInputValueModal: (habit: Habit, date: string, currentValue?: number) => void;
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (habitId: string) => void;
-  onShowReport: (habitId: string) => void; // New prop
+  onShowReport: (habitId: string) => void;
 }
 
 export function HabitTable({
@@ -167,7 +177,7 @@ export function HabitTable({
   onOpenInputValueModal,
   onEditHabit,
   onDeleteHabit,
-  onShowReport, // New prop
+  onShowReport,
 }: HabitTableProps) {
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(displayedMonth);
@@ -211,7 +221,7 @@ export function HabitTable({
                 onOpenInputValueModal={onOpenInputValueModal}
                 onEditHabit={onEditHabit}
                 onDeleteHabit={onDeleteHabit}
-                onShowReport={onShowReport} 
+                onShowReport={onShowReport}
               />
             ))}
           </tbody>
