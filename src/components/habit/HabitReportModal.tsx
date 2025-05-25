@@ -303,8 +303,8 @@ export function HabitReportModal({
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-7 gap-1 text-xs text-center">
-                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                        <div key={day} className="font-medium text-muted-foreground">{day}</div>
+                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                        <div key={`${day}-${index}`} className="font-medium text-muted-foreground">{day}</div>
                       ))}
                       {Array.from({ length: getDay(dfnsStartOfMonth(displayedCalendarMonth)) }).map((_, i) => (
                         <div key={`empty-${i}`} className="p-1 aspect-square"></div>
@@ -392,3 +392,4 @@ export function HabitReportModal({
     </Dialog>
   );
 }
+
