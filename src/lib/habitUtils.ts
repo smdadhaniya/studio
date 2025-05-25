@@ -2,7 +2,7 @@
 import type { Habit, DailyProgress, UserProfile, Badge, HabitProgress } from './types';
 import { LEVEL_THRESHOLDS, BADGES, XP_PER_COMPLETION, DEFAULT_USER_NAME } from './constants';
 import { parseDate, getTodayDateString } from './dateUtils';
-import { differenceInCalendarDays, isBefore, isEqual, subDays, format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, getMonth, getYear, addDays } from 'date-fns';
+import { differenceInCalendarDays, isBefore, isEqual, subDays, format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, getMonth, getYear, addDays, startOfDay } from 'date-fns';
 
 export function calculateStreak(habitId: string, allProgress: HabitProgress): number {
   const progress = allProgress[habitId] || [];
@@ -335,7 +335,7 @@ export function getInitialUserProfile(): UserProfile {
     level: 1,
     unlockedBadgeIds: [],
     userName: DEFAULT_USER_NAME,
-    hasCompletedSetup: false, 
+    hasCompletedSetup: true, // Default to true to prevent setup modal on first load after this change
   };
 }
 
@@ -343,3 +343,4 @@ export function getInitialUserProfile(): UserProfile {
 function isAfter(date1: Date, date2: Date): boolean {
     return startOfDay(date1).getTime() > startOfDay(date2).getTime();
 }
+
