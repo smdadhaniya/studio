@@ -17,13 +17,16 @@ export default function LandingPage() {
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <Rocket className="w-24 h-24 md:w-28 md:h-28 text-primary mx-auto mb-6 animate-bounce" />
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6">
+          <h1 className="text-[50px] lg:text-[64px] font-extrabold mb-6">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
               Habit Track
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto font-light">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto font-light">
             Transform your life, one habit at a time. Effortlessly build, track, and master habits that stick. Your journey to peak productivity and personal growth starts now!
+          </p>
+          <p className="text-lg text-accent font-semibold mb-10">
+            Completely free to use!
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link href="/" passHref>
@@ -44,7 +47,7 @@ export default function LandingPage() {
       <section id="features" className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4">Unlock Your Potential</h2>
+            <h2 className="text-[30px] md:text-[36px] font-bold text-primary mb-4">Unlock Your Potential</h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Habit Track is packed with features designed to make habit formation intuitive, engaging, and effective.
             </p>
@@ -63,7 +66,7 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <feature.icon className="w-8 h-8" />
                   </div>
-                  <CardTitle className="text-2xl font-semibold">{feature.title}</CardTitle>
+                  <CardTitle className="text-[25px] font-semibold">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   <CardDescription className="text-md text-muted-foreground">{feature.description}</CardDescription>
@@ -79,7 +82,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <StepForward className="w-16 h-16 text-accent mx-auto mb-4" />
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Simple Steps to Success</h2>
+            <h2 className="text-[30px] md:text-[36px] font-bold text-foreground mb-4">Simple Steps to Success</h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Getting started with Habit Track is as easy as 1-2-3.
             </p>
@@ -99,7 +102,7 @@ export default function LandingPage() {
                         {index + 1}
                     </div>
                 </div>
-                <h3 className="text-2xl font-semibold text-foreground mb-2">{step.title}</h3>
+                <h3 className="text-[25px] font-semibold text-foreground mb-2">{step.title}</h3>
                 <p className="text-md text-muted-foreground">{step.description}</p>
               </div>
             ))}
@@ -111,7 +114,7 @@ export default function LandingPage() {
        <section className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Visualize Your New Self</h2>
+            <h2 className="text-[30px] md:text-[36px] font-bold text-foreground mb-4">Visualize Your New Self</h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               An intuitive and beautiful interface designed to keep you focused, motivated, and in control.
             </p>
@@ -135,7 +138,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <MessageSquareText className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Loved by Achievers Like You</h2>
+            <h2 className="text-[30px] md:text-[36px] font-bold text-foreground mb-4">Loved by Achievers Like You</h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Don't just take our word for it. Here's what early users are saying (placeholders).
             </p>
@@ -150,7 +153,7 @@ export default function LandingPage() {
                 <CardContent className="p-6 text-center">
                   <testimonial.icon className="w-10 h-10 text-accent mx-auto mb-4" />
                   <p className="text-lg text-muted-foreground italic mb-4">"{testimonial.quote}"</p>
-                  <h4 className="text-xl font-semibold text-primary">{testimonial.name}</h4>
+                  <h4 className="text-[25px] font-semibold text-primary">{testimonial.name}</h4>
                   <p className="text-sm text-muted-foreground/80">{testimonial.role}</p>
                 </CardContent>
               </Card>
@@ -164,7 +167,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <Lightbulb className="w-16 h-16 text-accent mx-auto mb-4" />
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Why Choose Habit Track?</h2>
+            <h2 className="text-[30px] md:text-[36px] font-bold text-foreground mb-4">Why Choose Habit Track?</h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               We focus on what truly matters for building lasting habits.
             </p>
@@ -192,7 +195,7 @@ export default function LandingPage() {
                     <point.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-semibold text-foreground mb-1">{point.title}</h4>
+                    <h4 className="text-[25px] font-semibold text-foreground mb-1">{point.title}</h4>
                     <p className="text-md text-muted-foreground">{point.description}</p>
                   </div>
                 </div>
@@ -206,9 +209,12 @@ export default function LandingPage() {
       <section className="py-16 md:py-24 bg-gradient-to-br from-accent/10 via-background to-background">
         <div className="container mx-auto px-4 text-center">
           <Gem className="w-20 h-20 text-accent mx-auto mb-6" />
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Build Lasting Habits?</h2>
-          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+          <h2 className="text-[30px] md:text-[36px] font-bold mb-6">Ready to Build Lasting Habits?</h2>
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Take the first step towards a more disciplined and fulfilling life. Join Habit Track today and start forging the habits of success.
+          </p>
+          <p className="text-xl text-accent font-semibold mb-10">
+            Start for free – no credit card required!
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link href="/" passHref>
@@ -248,3 +254,5 @@ export function TermsPage() {
   return <div className="container mx-auto p-8"><h1>Terms of Service</h1><p>Details about your terms of service...</p></div>;
 }
 
+
+    
