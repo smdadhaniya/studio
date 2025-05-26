@@ -15,7 +15,8 @@ import { useAuth } from '@/contexts/AuthContext'; // Assuming AuthContext is in 
 import { Flame } from 'lucide-react';
 
 const signupSchema = z.object({
-  fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
+  firstName: z.string().min(1, { message: "First name is required." }).min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z.string().min(1, { message: "Last name is required." }).min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
@@ -33,7 +34,8 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
-    const user = await signup(data.email, data.password, data.fullName);
+    const fullName = `${data.firstName} ${data.lastName}`;
+    const user = await signup(data.email, data.password, fullName);
     setIsLoading(false);
     if (user) {
       router.push('/'); // Redirect to My Habits page
@@ -49,16 +51,29 @@ export default function SignupPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="John Doe"
-              {...register("fullName")}
-              disabled={isLoading}
-            />
-            {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="space-y-1 sm:flex-1">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                type="text"
+                placeholder="John"
+                {...register("firstName")}
+                disabled={isLoading}
+              />
+              {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+            </div>
+            <div className="space-y-1 sm:flex-1">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Doe"
+                {...register("lastName")}
+                disabled={isLoading}
+              />
+              {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+            </div>
           </div>
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
