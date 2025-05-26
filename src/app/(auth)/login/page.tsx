@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext'; // Assuming AuthContext is in src/contexts
 import { Flame } from 'lucide-react';
+import axiosInstance from '@/lib/axios';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -33,9 +34,13 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
-    const user = await login(data.email, data.password);
+    const user = await axiosInstance.post('/api/auth/signin', {
+      email: data.email,
+      password: data.password,
+    });
     setIsSubmitting(false);
     if (user) {
+      
       router.push('/'); // Redirect to My Habits page
     }
   };

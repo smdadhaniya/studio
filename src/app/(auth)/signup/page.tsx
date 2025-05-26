@@ -1,51 +1,71 @@
-
 "use client";
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { Flame } from 'lucide-react';
+import axiosInstance from '@/lib/axios';
 
 const signupSchema = z.object({
-  firstName: z.string().min(1, { message: "First name is required." }).min(2, { message: "First name must be at least 2 characters." }),
-  lastName: z.string().min(1, { message: "Last name is required." }).min(2, { message: "Last name must be at least 2 characters." }),
+  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  termsAccepted: z.boolean().refine(val => val === true, { message: "You must accept the Terms and Conditions." }),
-  privacyAccepted: z.boolean().refine(val => val === true, { message: "You must accept the Privacy Policy." }),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "You must accept the Terms and Conditions.",
+  }),
+  privacyAccepted: z.boolean().refine(val => val === true, {
+    message: "You must accept the Privacy Policy.",
+  }),
 });
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, control } = useForm<SignupFormData>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       termsAccepted: false,
       privacyAccepted: false,
-    }
+    },
   });
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     const fullName = `${data.firstName} ${data.lastName}`;
-    const user = await signup(data.email, data.password, fullName);
+    const user = await axiosInstance.post('/api/auth/register', {
+      email: data.email,
+      password: data.password,
+      name: fullName,
+    })
     setIsLoading(false);
     if (user) {
-      router.push('/'); // Redirect to My Habits page
+      router.push('/');
     }
   };
 
@@ -107,11 +127,18 @@ export default function SignupPage() {
 
           <div className="space-y-3">
             <div className="flex items-start space-x-2">
-              <Checkbox 
-                id="termsAccepted" 
-                {...register("termsAccepted")}
-                disabled={isLoading}
-                aria-labelledby="terms-label"
+              <Controller
+                name="termsAccepted"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="termsAccepted"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isLoading}
+                    aria-labelledby="terms-label"
+                  />
+                )}
               />
               <div className="grid gap-1.5 leading-none">
                 <label
@@ -120,20 +147,34 @@ export default function SignupPage() {
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   I agree to the{' '}
-                  <Link href="/terms" className="font-medium text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+                  <Link
+                    href="/terms"
+                    className="font-medium text-primary hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Terms and Conditions
                   </Link>
                 </label>
-                {errors.termsAccepted && <p className="text-xs text-destructive">{errors.termsAccepted.message}</p>}
+                {errors.termsAccepted && (
+                  <p className="text-xs text-destructive">{errors.termsAccepted.message}</p>
+                )}
               </div>
             </div>
 
             <div className="flex items-start space-x-2">
-               <Checkbox 
-                id="privacyAccepted" 
-                {...register("privacyAccepted")}
-                disabled={isLoading}
-                aria-labelledby="privacy-label"
+              <Controller
+                name="privacyAccepted"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="privacyAccepted"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isLoading}
+                    aria-labelledby="privacy-label"
+                  />
+                )}
               />
               <div className="grid gap-1.5 leading-none">
                 <label
@@ -142,16 +183,27 @@ export default function SignupPage() {
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   I agree to the{' '}
-                  <Link href="/privacy" className="font-medium text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+                  <Link
+                    href="/privacy"
+                    className="font-medium text-primary hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Privacy Policy
                   </Link>
                 </label>
-                {errors.privacyAccepted && <p className="text-xs text-destructive">{errors.privacyAccepted.message}</p>}
+                {errors.privacyAccepted && (
+                  <p className="text-xs text-destructive">{errors.privacyAccepted.message}</p>
+                )}
               </div>
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            disabled={isLoading}
+          >
             {isLoading ? 'Creating Account...' : 'Sign Up'}
           </Button>
         </form>
