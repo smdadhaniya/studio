@@ -1,3 +1,4 @@
+// AuthContext.tsx
 "use client";
 
 import React, {
@@ -7,22 +8,22 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
+import { clearState, loadState } from "@/lib/localStorageUtils";
+import { FirebaseUser } from "@/lib/types";
+import {
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  USER_PROFILE_KEY,
+} from "@/lib/constants";
 import axios from "axios";
-import { toast } from "@/hooks/use-toast";
-import { loadState, saveState } from "@/lib/localStorageUtils";
-import { FirebaseUser, UserProfile } from "@/lib/types";
-import { getInitialUserProfile } from "@/lib/habitUtils";
-import { DEFAULT_USER_NAME } from "@/lib/constants";
-
-export const USER_PROFILE_KEY = "habitForge_userProfile";
-export const ACCESS_TOKEN_KEY = "habitForge_accessToken";
-export const REFRESH_TOKEN_KEY = "habitForge_refreshToken";
+import { nullable } from "zod";
 
 interface AuthContextType {
   currentUser: any;
-  setCurrentUser: any;
-  setLoading: any;
+  setCurrentUser: React.Dispatch<React.SetStateAction<FirebaseUser | null>>;
   loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isAuthPage: boolean;
   setIsAuthPage: React.Dispatch<React.SetStateAction<boolean>>;
   logout: () => void;
@@ -30,51 +31,55 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
-}
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthPage, setIsAuthPage] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    const accessToken = loadState<string>(ACCESS_TOKEN_KEY, "");
-    const userProfile = loadState<any>(USER_PROFILE_KEY, "");
+    const isAuth = pathname === "/login" || pathname === "/signup";
+    setIsAuthPage(isAuth);
+  }, [pathname]);
 
-    if (accessToken && userProfile) {
+  useEffect(() => {
+    // Load tokens and user profile from localStorage
+    const token = loadState(ACCESS_TOKEN_KEY, "");
+    const userProfile = loadState(USER_PROFILE_KEY, "");
+    if (token && userProfile) {
       setCurrentUser(userProfile);
     }
     setLoading(false);
   }, []);
 
   const logout = () => {
-    localStorage.removeItem(USER_PROFILE_KEY);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
     setCurrentUser(null);
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
+    clearState(ACCESS_TOKEN_KEY);
+    clearState(REFRESH_TOKEN_KEY);
+    clearState(USER_PROFILE_KEY);
   };
 
-  const value: AuthContextType = {
-    currentUser,
-    setCurrentUser,
-    setLoading,
-    loading,
-    logout,
-    isAuthPage,
-    setIsAuthPage,
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        setCurrentUser,
+        loading,
+        setLoading,
+        isAuthPage,
+        setIsAuthPage,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

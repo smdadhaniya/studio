@@ -20,24 +20,25 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    const { user } = await signInWithEmailAndPassword(
-      HabitForgeAuth,
-      email,
-      password
-    );
-    const userDocRef = doc(HabitForgeFirestore, "users", user.uid);
-    const userSnapshot = await getDoc(userDocRef);
-
-    if (!userSnapshot.exists()) {
+    let signinUser;
+    try {
+      const { user } = await signInWithEmailAndPassword(
+        HabitForgeAuth,
+        email,
+        password
+      );
+      signinUser = user;
+    } catch {
       return new Response(
         JSON.stringify({ message: "User record not found in Firestore." }),
         { status: 404 }
       );
     }
+    const userDocRef = doc(HabitForgeFirestore, "users", signinUser.uid);
+    const userSnapshot = await getDoc(userDocRef);
 
-    const accessToken = await user.getIdToken();
-    const refreshToken = user.refreshToken;
+    const accessToken = await signinUser.getIdToken();
+    const refreshToken = signinUser.refreshToken;
 
     return new Response(
       JSON.stringify({

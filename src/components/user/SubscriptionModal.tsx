@@ -117,7 +117,7 @@ export function SubscriptionModal({
 
   const handleSubscribeClick = async (plan: SubscriptionPlan) => {
     setSubscribePlan(plan.id);
-    if (!currentUser.uid) {
+    if (!currentUser?.uid) {
       onOpenChange(false);
       router.replace("/login");
       return;
@@ -140,7 +140,7 @@ export function SubscriptionModal({
       const res = await axiosInstance.post("/api/create-razorpay-order", {
         amount: amountInINR, // paise
         currency: "INR",
-        name: currentUser.userName,
+        name: currentUser.name,
         email: currentUser.email,
         subscriptionId: plan.id,
       });

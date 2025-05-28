@@ -1,6 +1,5 @@
-
 export function loadState<T>(key: string, defaultValue: T): T {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return defaultValue;
   }
   try {
@@ -10,13 +9,16 @@ export function loadState<T>(key: string, defaultValue: T): T {
     }
     return JSON.parse(serializedState);
   } catch (error) {
-    console.warn(`Error loading state for key "${key}" from localStorage:`, error);
+    console.warn(
+      `Error loading state for key "${key}" from localStorage:`,
+      error
+    );
     return defaultValue;
   }
 }
 
 export function saveState<T>(key: string, value: T): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
   try {
@@ -27,3 +29,16 @@ export function saveState<T>(key: string, value: T): void {
   }
 }
 
+export function clearState(key: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.warn(
+      `Error clearing state for key "${key}" from localStorage:`,
+      error
+    );
+  }
+}

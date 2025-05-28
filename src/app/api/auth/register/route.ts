@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
     let user;
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         HabitForgeAuth,
@@ -26,9 +28,17 @@ export async function POST(req: NextRequest) {
         password
       );
       user = userCredential.user;
-    } catch (authError) {
+    } catch (authError: any) {
+      if (authError.code === "auth/email-already-in-use") {
+        return NextResponse.json(
+          { message: "User with this email already exists." },
+          { status: 409 }
+        );
+      }
+
       console.error("🔥 Firebase Auth Error:", authError);
-      throw authError;
+      // Use shared handler for all other Firebase-related errors
+      return Firebase.handleFirebaseError(authError);
     }
 
     const userData = {
@@ -56,6 +66,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    // return Firebase.handleFirebaseError(error);
+    console.error("🔥 Unexpected Error:", error);
+    return Firebase.handleFirebaseError(error);
   }
 }

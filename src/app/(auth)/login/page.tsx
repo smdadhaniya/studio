@@ -17,16 +17,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ACCESS_TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
-  useAuth,
-  USER_PROFILE_KEY,
-} from "@/contexts/AuthContext"; // Assuming AuthContext is in src/contexts
+import { useAuth } from "@/contexts/AuthContext"; // Assuming AuthContext is in src/contexts
 import { Flame } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import { saveState } from "@/lib/localStorageUtils";
 import { toast } from "@/hooks/use-toast";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_PROFILE_KEY } from "@/lib/constants";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -50,34 +46,54 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
+    setLoading(true); // Ensure loading context state is also updated
     const payload = {
       email: data.email,
       password: data.password,
     };
+
     try {
-      const response = await axiosInstance({
-        method: "post",
-        url: "/api/auth/signin",
-        data: payload,
-      });
+      const response = await axiosInstance.post("/api/auth/signin", payload);
+
+      if (!response?.data?.success) {
+        throw new Error(response.data?.message || "Authentication failed.");
+      }
+
       const { userInfo, accessToken, refreshToken } = response.data.data;
 
+      // Save tokens & user info to local storage
       saveState(USER_PROFILE_KEY, userInfo);
       saveState(ACCESS_TOKEN_KEY, accessToken);
       saveState(REFRESH_TOKEN_KEY, refreshToken);
 
+      // Set user in global context
       setCurrentUser(userInfo);
-      toast({ title: "Login Successful", description: "Welcome back!" });
+
+      // Show success toast
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
+      });
+
+      // Navigate to home page
       router.push("/");
     } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message || error.message || "Login failed";
+      let errorMsg = "Login failed. Please try again.";
+
+      // Extract meaningful error from server response
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
       toast({
         title: "Login Failed",
         description: errorMsg,
         variant: "destructive",
       });
     } finally {
+      setIsSubmitting(false);
       setLoading(false);
     }
   };

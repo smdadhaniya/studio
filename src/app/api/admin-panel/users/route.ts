@@ -9,7 +9,7 @@ import {
   doc,
   DocumentReference,
 } from "firebase/firestore";
-import { HabitForgeFirestore } from "../../../../firebase/firebase.config";
+import { HabitForgeFirestore } from "../../../../../firebase/firebase.config";
 
 export async function GET(req: NextRequest) {
   try {

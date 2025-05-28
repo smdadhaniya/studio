@@ -42,6 +42,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"; // Import AuthProvider and useAuth
 import { useRouter, usePathname } from "next/navigation"; // For redirecting
+import axiosInstance from "@/lib/axios";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -59,9 +60,22 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile>(
     getInitialUserProfile()
   );
-  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
-  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
+    useState<boolean>(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] =
+    useState<boolean>(false);
   const { requestPermission, permission } = useNotifications();
+
+  useEffect(() => {
+    const fetchloginUser = async () => {
+      // const currentUserInfo = await axiosInstance.get("api/fetch-user", {
+      //   params: { userId: currentUser?.uid },
+      // });
+    };
+    if (currentUser?.uid) {
+      fetchloginUser();
+    }
+  }, [currentUser?.uid]);
 
   const handleProfileNameUpdate = useCallback(
     (name: string) => {
@@ -78,7 +92,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
         saveState(USER_PROFILE_KEY, newProfile);
         return newProfile;
       });
-      
+
       toast({
         title: "Profile Updated!",
         description: `Name changed to ${effectiveName}.`,
@@ -196,8 +210,8 @@ function AppContent({ children }: { children: React.ReactNode }) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>
                             {userProfile.userName ||
-                              currentUser.displayName ||
-                              currentUser.email}
+                              currentUser?.displayName ||
+                              currentUser?.email}
                           </DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -255,21 +269,17 @@ function AppContent({ children }: { children: React.ReactNode }) {
           <main className="flex-grow">{children}</main>
         </div>
         <Toaster />
-        {currentUser && ( // Only show these modals if user is logged in for context
-          <>
-            <SubscriptionModal
-              open={isSubscriptionModalOpen}
-              onOpenChange={setIsSubscriptionModalOpen}
-            />
-            <SetupModal
-              open={isEditProfileModalOpen}
-              onOpenChange={setIsEditProfileModalOpen}
-              onSubmit={(name) => handleProfileNameUpdate(name)}
-              currentUserName={userProfile.userName}
-              isEditing={true}
-            />
-          </>
-        )}
+        <SubscriptionModal
+          open={isSubscriptionModalOpen}
+          onOpenChange={setIsSubscriptionModalOpen}
+        />
+        <SetupModal
+          open={isEditProfileModalOpen}
+          onOpenChange={setIsEditProfileModalOpen}
+          onSubmit={(name) => handleProfileNameUpdate(name)}
+          currentUserName={userProfile.userName}
+          isEditing={true}
+        />
       </body>
     </html>
   );

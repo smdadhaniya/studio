@@ -19,12 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
-  useAuth,
   USER_PROFILE_KEY,
-} from "@/contexts/AuthContext";
+} from "../../../lib/constants";
 import { Flame } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import { saveState } from "@/lib/localStorageUtils";
@@ -54,7 +54,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { loading, setLoading, setCurrentUser } = useAuth();
+  const { setCurrentUser } = useAuth();
 
   const {
     register,
@@ -102,7 +102,7 @@ export default function SignupPage() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 

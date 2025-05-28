@@ -83,7 +83,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await axiosInstance.get("/api/users");
+      const res = await axiosInstance.get("/api/admin-panel/users");
       setSubscribers(res.data.users);
     };
 
