@@ -2,7 +2,10 @@ import { Firebase } from "@/lib/firebase-error-handler";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { NextRequest, NextResponse } from "next/server";
-import { HabitForgeAuth, HabitForgeFirestore } from "../../../../../firebase/firebase.config";
+import {
+  HabitForgeAuth,
+  HabitForgeFirestore,
+} from "../../../../../firebase/firebase.config";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,12 +20,17 @@ export async function POST(req: NextRequest) {
     }
     let user;
     try {
-      const userCredential = await createUserWithEmailAndPassword(HabitForgeAuth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        HabitForgeAuth,
+        email,
+        password
+      );
       user = userCredential.user;
     } catch (authError) {
       console.error("🔥 Firebase Auth Error:", authError);
       throw authError;
     }
+
     const userData = {
       uid: user.uid,
       name,
