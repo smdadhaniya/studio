@@ -1,7 +1,36 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
-
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
-  maxInstances: 1
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
+
+env:
+  - variable: GEMINI_API_KEY
+    value: AIzaSyCX-JgZNLvQ-mqOEn7ciIiq0WQsw2cbFHw
+
+  # Firebase Config
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyBCraLRvShCJjaKCe3btkDOUFhF2pPS2EM
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: habit-forge-13291.firebaseapp.com
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: habit-forge-13291
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: habit-forge-13291.firebasestorage.app
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "1000892223758"
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:1000892223758:web:91dba58181ff6ba355075f
+
+  # Payment Integration
+  - variable: NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID
+    value: rzp_test_6FxnADkX05Llzt
+
+  - variable: NEXT_PUBLIC_RAZORPAY_TEST_KEY_SECRET
+    value: t3bR9BwGwotICu78YlKlWK8B
