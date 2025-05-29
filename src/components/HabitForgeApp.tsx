@@ -9,7 +9,7 @@ import type {
 } from "@/lib/types";
 import type { HabitFormData } from "@/components/habit/HabitForm";
 import { useState, useEffect, useMemo } from "react";
-import { clearState, loadState, saveState } from "@/lib/localStorageUtils";
+import { loadState, saveState } from "@/lib/localStorageUtils";
 import {
   calculateStreak,
   calculateLevel,
@@ -61,7 +61,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import axiosInstance from "@/lib/axios";
-import { convertKeysToCamelCase } from "@/lib/utils";
 
 const HABITS_KEY = "habitForge_habits";
 const PROGRESS_KEY = "habitForge_progress";
@@ -103,60 +102,95 @@ export default function HabitForgeApp() {
   >([]);
 
   const { showNotification } = useNotifications();
-  const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
-  const loadedProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
-  const loadedProfile = loadState<any>(USER_PROFILE_KEY, {});
-  const bookmarkedDateString = loadState<string | null>(
-    BOOKMARKED_VIEW_DATE_KEY,
-    ""
-  );
-  const getHabits = async () => {
-    const res = await axiosInstance.get("/api/habit/get-habits", {
-      params: { userId: currentUser?.uid },
-    });
-    const camelCaseResult = convertKeysToCamelCase(res.data.habits);
-    setHabits(camelCaseResult);
-  };
-
-  // const getProgress = async () => {
-  //   const res = await axiosInstance.get("/api/habit/get-progress", {
-  //     params: { userId: currentUser?.uid },
-  //   });
-  //   setAllProgress(res.data.allProgress);
-  // };
 
   useEffect(() => {
-    if (currentUser?.subscription_plan?.is_active) {
-      getHabits();
-      clearState(HABITS_KEY);
-      clearState(PROGRESS_KEY);
-    } else {
-      setHabits(loadedHabitsInitial);
-      setAllProgress(loadedProgress);
-      setUserProfile(loadedProfile);
-      saveState(HABITS_KEY, habits);
-      saveState(PROGRESS_KEY, allProgress);
-      saveState(USER_PROFILE_KEY, userProfile);
-      if (bookmarkedDateString) {
-        setDisplayedMonth(startOfMonth(new Date(bookmarkedDateString)));
+    // if (!authLoading && !currentUser) {
+    const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
+    const sanitizedHabits = loadedHabitsInitial.map((h, index) => {
+      let iconName = typeof h.icon === "string" ? h.icon : undefined;
+      if (
+        iconName &&
+        !HABIT_LUCIDE_ICONS_LIST.find((item) => item.name === iconName)
+      ) {
+        iconName = undefined;
       }
+      return {
+        ...h,
+        id: h.id || crypto.randomUUID(),
+        createdAt: h.createdAt || new Date().toISOString(),
+        description: h.description || "",
+        icon: iconName,
+        color:
+          typeof h.color === "string" && HABIT_COLORS.includes(h.color)
+            ? h.color
+            : HABIT_COLORS[index % HABIT_COLORS.length],
+        measurableUnit:
+          h.measurableUnit ||
+          (h.trackingFormat === "measurable" ? "units" : undefined),
+        targetCount:
+          h.targetCount || (h.trackingFormat === "measurable" ? 1 : undefined),
+      };
+    });
+    setHabits(sanitizedHabits);
+
+    const loadedProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
+    setAllProgress(loadedProgress);
+
+    // let loadedProfile = loadState<UserProfile>(
+    //   USER_PROFILE_KEY,
+    //   getInitialUserProfile()
+    // );
+    // if (loadedProfile.isSubscribed === undefined) {
+    //   loadedProfile = { ...loadedProfile, isSubscribed: false };
+    // }
+    // if (currentUser?.name && loadedProfile.userName === DEFAULT_USER_NAME) {
+    //   loadedProfile.userName = currentUser.name;
+    //   loadedProfile.hasCompletedSetup = true;
+    //   saveState(USER_PROFILE_KEY, loadedProfile);
+    // }
+    // setUserProfile((prev) => ({ ...prev, ...loadedProfile }));
+
+    const bookmarkedDateString = loadState<string | null>(
+      BOOKMARKED_VIEW_DATE_KEY,
+      null
+    );
+    if (bookmarkedDateString) {
+      setDisplayedMonth(startOfMonth(new Date(bookmarkedDateString)));
     }
-  }, [currentUser]);
+
+    // if (currentUser && !loadedProfile.hasCompletedSetup) {
+    //   setIsSetupModalOpen(true);
+    // }
+    // }
+
+    if (currentUser?.uid) {
+      const getHabits = async () => {
+        const res = await axiosInstance.get("/api/habit/get-habits", {
+          params: { userId: currentUser?.uid },
+        });
+        setHabits(res.data.habits);
+      };
+      getHabits();
+
+      // const getProgress = async () => {
+      //   const res = await axiosInstance.get("/api/habit/get-progress", {
+      //     params: { userId: currentUser?.uid },
+      //   });
+      //   setAllProgress(res.data.allProgress);
+      // };
+
+      // getProgress();
+    }
+  }, [authLoading, currentUser, router]);
 
   useEffect(() => {
-    if (!currentUser?.subscription_plan?.is_active) {
-      saveState(HABITS_KEY, habits);
-    }
+    saveState(HABITS_KEY, habits);
   }, [habits]);
   useEffect(() => {
-    if (!currentUser?.subscription_plan?.is_active) {
-      saveState(PROGRESS_KEY, allProgress);
-    }
+    saveState(PROGRESS_KEY, allProgress);
   }, [allProgress]);
   useEffect(() => {
-    if (!currentUser?.subscription_plan?.is_active) {
-      saveState(USER_PROFILE_KEY, userProfile);
-    }
+    saveState(USER_PROFILE_KEY, userProfile);
   }, [userProfile]);
 
   const handleInitialSetupSubmit = (
@@ -175,6 +209,13 @@ export default function HabitForgeApp() {
     };
     setUserProfile(newProfile);
     saveState(USER_PROFILE_KEY, newProfile);
+
+    // Update Firebase profile display name as well
+    // if (currentUser) {
+    //   updateProfile(currentUser, { displayName: effectiveName }).catch((err) =>
+    //     console.error("Error updating Firebase display name:", err)
+    //   );
+    // }
 
     const habitsToAdd: Habit[] = [];
     if (selectedPresetsData.length > 0) {
@@ -234,7 +275,12 @@ export default function HabitForgeApp() {
     };
     setUserProfile(newProfile);
     saveState(USER_PROFILE_KEY, newProfile);
-
+    // Also update Firebase display name if user is logged in
+    // if (currentUser) {
+    //   updateProfile(currentUser, { displayName: effectiveName }).catch((err) =>
+    //     console.error("Failed to update Firebase profile name", err)
+    //   );
+    // }
     toast({ title: `Profile name updated to ${effectiveName}!` });
     setIsEditProfileModalOpenFromApp(false);
   };
@@ -267,13 +313,18 @@ export default function HabitForgeApp() {
           }));
 
         if (habitsToAdd.length > 0) {
-          if (currentUser?.subscription_plan?.is_active) {
-            await axiosInstance.post("/api/habit/add-habit", {
+          setHabits((prev) => [...prev, ...habitsToAdd]);
+
+          const habitAddResponse = await axiosInstance.post(
+            "/api/habit/add-habit",
+            {
               habits: habitsToAdd,
               userId: currentUser.uid,
-            });
-          }
-          setHabits((prev) => [...prev, ...habitsToAdd]);
+            }
+          );
+
+          console.log(habitAddResponse);
+
           toast({
             title: `${habitsToAdd.length} Preset Habit(s) Added!`,
             description: `Successfully added new habits from presets.`,
@@ -302,14 +353,13 @@ export default function HabitForgeApp() {
           icon: data.icon,
           color: HABIT_COLORS[habits.length % HABIT_COLORS.length],
         };
-
-        if (currentUser?.subscription_plan?.is_active) {
-          await axiosInstance.post("/api/habit/add-habit", {
-            habits: [newHabit],
-            userId: currentUser.uid,
-          });
-        }
         setHabits((prev) => [...prev, newHabit]);
+
+        const res = await axiosInstance.post("/api/habit/add-habit", {
+          habits: [newHabit],
+          userId: currentUser.uid,
+        });
+
         toast({
           title: "Habit Tracked!",
           description: `"${newHabit.title}" is now being tracked.`,
@@ -338,19 +388,16 @@ export default function HabitForgeApp() {
         target_count: data.targetCount,
         tracking_format: data.trackingFormat,
       };
-
-      if (currentUser?.subscription_plan?.is_active) {
-        const res = await axiosInstance.put("/api/habit/edit-habit", {
-          userId: currentUser.uid,
-          habitId,
-          data: updatedData,
-        });
-      }
+      const res = await axiosInstance.put("/api/habit/edit-habit", {
+        userId: currentUser.uid,
+        habitId,
+        data: updatedData,
+      });
       setHabits((prev) =>
         prev.map((h) =>
           h.id === habitId
             ? {
-                ...h,
+                ...h, // Preserve existing color and other fields not in HabitFormData
                 title: data.title,
                 description: data.description || "",
                 trackingFormat: data.trackingFormat,
@@ -397,20 +444,22 @@ export default function HabitForgeApp() {
           `Are you sure you want to delete the habit "${habitToDelete?.title}"? This action cannot be undone.`
         )
       ) {
-        if (currentUser?.subscription_plan?.is_active) {
-          await axiosInstance.delete("/api/habit/delete-habit", {
+        if (currentUser.uid) {
+          const res = await axiosInstance.delete("/api/habit/delete-habit", {
             params: {
               userId: currentUser.uid,
               habitId,
             },
           });
+          if (res) {
+            setHabits((prev) => prev.filter((h) => h.id !== habitId));
+            setAllProgress((prev) => {
+              const newProgress = { ...prev };
+              delete newProgress[habitId];
+              return newProgress;
+            });
+          }
         }
-        setHabits((prev) => prev.filter((h) => h.id !== habitId));
-        setAllProgress((prev) => {
-          const newProgress = { ...prev };
-          delete newProgress[habitId];
-          return newProgress;
-        });
         toast({
           title: "Habit Deleted",
           description: `"${habitToDelete?.title}" has been removed.`,
@@ -592,23 +641,6 @@ export default function HabitForgeApp() {
         }
       }
     }
-
-    if (currentUser?.subscription_plan?.is_active) {
-      const res = await axiosInstance.post("/api/progress/update-progress", {
-        userId: currentUser.id,
-        habitId: habit.id,
-        progress: {
-          date: date,
-          completed: triggerPositiveReinforcement,
-          value: triggerPositiveReinforcement,
-        },
-      });
-      if (res) {
-        toast({
-          title: res.data.message,
-        });
-      }
-    }
     setUserProfile(userProfileAfterToggle);
     saveState(USER_PROFILE_KEY, userProfileAfterToggle);
   };
@@ -635,9 +667,10 @@ export default function HabitForgeApp() {
         ? submittedValue !== undefined &&
           submittedValue > 0 &&
           submittedValue >= (habit.targetCount || 1)
-        : submittedValue !== undefined && submittedValue > 0;
+        : submittedValue !== undefined && submittedValue > 0; // For yes/no, any positive value means completed
 
-    const newValueForEntry = submittedValue;
+    const newValueForEntry = submittedValue; // This could be undefined if user clears input
+
     let newAllProgress = { ...allProgress };
     let updatedHabitSpecificProgressList: DailyProgress[];
 
@@ -673,24 +706,8 @@ export default function HabitForgeApp() {
     );
     newAllProgress[habitId] = updatedHabitSpecificProgressList;
 
-    if (currentUser?.subscription_plan?.is_active) {
-      const res = await axiosInstance.post("/api/progress/update-progress", {
-        userId: currentUser.id,
-        habitId: habitId,
-        progress: {
-          date: date,
-          completed: isNowCompleted,
-          value: submittedValue,
-        },
-      });
-      if (res) {
-        toast({
-          title: res.data.message,
-        });
-      }
-    }
-
     setAllProgress(newAllProgress);
+    console.log("newAllProgress", newAllProgress);
 
     const wasJustNewlyCompleted = !wasPreviouslyCompleted && isNowCompleted;
     const valueIncreasedWhileCompleted =
@@ -811,7 +828,7 @@ export default function HabitForgeApp() {
     });
   };
 
-  if (false) {
+  if (authLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p>Loading your habits...</p>
@@ -819,6 +836,16 @@ export default function HabitForgeApp() {
     );
   }
 
+  // if (!currentUser) {
+  //   // This should ideally not be reached if useEffect redirect works, but as a fallback.
+  //   return (
+  //     <div className="flex justify-center items-center min-h-screen">
+  //       <p>Redirecting to login...</p>
+  //     </div>
+  //   );
+  // }
+
+  // Show setup modal if user is authenticated but setup not complete
   if (
     !userProfile?.uid &&
     !userProfile?.hasCompletedSetup &&
