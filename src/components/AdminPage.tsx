@@ -34,6 +34,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import axiosInstance from "@/lib/axios";
+import { loadState } from "@/lib/localStorageUtils";
+import { useRouter } from "next/navigation";
 
 const mockSubscribers = [
   {
@@ -79,15 +81,20 @@ const mockSubscribers = [
 ];
 
 export default function AdminPage() {
+  const router = useRouter();
   const [subscribers, setSubscribers] = useState<any>([]);
+  const accessToken = loadState("admin_accessToken", "");
+  const fetchUsers = async () => {
+    const res = await axiosInstance.get("/api/admin-panel/users");
+    setSubscribers(res.data.users);
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      const res = await axiosInstance.get("/api/admin-panel/users");
-      setSubscribers(res.data.users);
-    };
-
-    fetchUsers();
+    if (accessToken) {
+      fetchUsers();
+    } else {
+      router.replace("/admin/login");
+    }
   }, []);
 
   const handleEditUser = (userId: string) => {

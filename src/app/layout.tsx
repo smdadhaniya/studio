@@ -53,7 +53,7 @@ const poppins = Poppins({
 const USER_PROFILE_KEY = "habitForge_userProfile";
 
 function AppContent({ children }: { children: React.ReactNode }) {
-  const { currentUser, logout, loading: authLoading, isAuthPage } = useAuth();
+  const { currentUser, logout, isAuthPage, loadedProfile } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -65,17 +65,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] =
     useState<boolean>(false);
   const { requestPermission, permission } = useNotifications();
-
-  useEffect(() => {
-    const fetchloginUser = async () => {
-      // const currentUserInfo = await axiosInstance.get("api/fetch-user", {
-      //   params: { userId: currentUser?.uid },
-      // });
-    };
-    if (currentUser?.uid) {
-      fetchloginUser();
-    }
-  }, [currentUser?.uid]);
 
   const handleProfileNameUpdate = useCallback(
     (name: string) => {
@@ -142,7 +131,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 >
                   <HomeIcon className="w-4 h-4 mr-1.5" /> Home
                 </Link>
-                {currentUser && (
+                {loadedProfile && (
                   <Link
                     href="/"
                     className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2 px-3 flex items-center"
@@ -150,19 +139,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
                     <ListChecks className="w-4 h-4 mr-1.5" /> My Habits
                   </Link>
                 )}
-                {currentUser && ( // Typically admin link would be role-based
-                  <Link
-                    href="/admin"
-                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2 px-3 flex items-center"
-                  >
-                    <ShieldCheck className="w-4 h-4 mr-1.5" /> Admin
-                  </Link>
-                )}
 
                 <div className="flex-grow"></div>
 
                 <div className="flex items-center gap-3">
-                  {authLoading ? (
+                  {false ? (
                     <Button variant="ghost" className="text-sm" disabled>
                       Loading...
                     </Button>

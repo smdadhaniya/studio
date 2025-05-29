@@ -44,6 +44,7 @@ function HabitRow({
   onShowReport,
   isHabitDeleting,
 }: HabitRowProps) {
+  console.log(habit.title, habit.trackingFormat);
   const habitProgressMap = useMemo(() => {
     const map = new Map<string, DailyProgress>();
     (habitDailyProgress || []).forEach((p) => map.set(p.date, p));
@@ -314,20 +315,23 @@ export function HabitTable({
             </tr>
           </thead>
           <tbody>
-            {habits.map((habit) => (
-              <HabitRow
-                key={habit.id}
-                habit={habit}
-                habitDailyProgress={allProgress[habit.id] || []}
-                daysInMonth={daysInMonth}
-                onToggleComplete={onToggleComplete}
-                onOpenInputValueModal={onOpenInputValueModal}
-                onEditHabit={onEditHabit}
-                onDeleteHabit={onDeleteHabit}
-                onShowReport={onShowReport}
-                isHabitDeleting={isHabitDeleting}
-              />
-            ))}
+            {habits.map((habit) => {
+              console.log(habit);
+              return (
+                <HabitRow
+                  key={habit.id}
+                  habit={habit}
+                  habitDailyProgress={allProgress[habit.id] || []}
+                  daysInMonth={daysInMonth}
+                  onToggleComplete={onToggleComplete}
+                  onOpenInputValueModal={onOpenInputValueModal}
+                  onEditHabit={onEditHabit}
+                  onDeleteHabit={onDeleteHabit}
+                  onShowReport={onShowReport}
+                  isHabitDeleting={isHabitDeleting}
+                />
+              );
+            })}
           </tbody>
         </table>
       </div>

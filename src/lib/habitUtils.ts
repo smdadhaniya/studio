@@ -58,7 +58,7 @@ export function calculateStreak(
       !yesterdayEntry?.completed &&
       !todayEntry?.completed &&
       progress.some(
-        (p:any) =>
+        (p: any) =>
           p.completed &&
           isEqual(p?.dateObj, subDays(parseDate(getTodayDateString()), 1))
       )
@@ -386,7 +386,7 @@ export function checkAndAwardBadges(
   let newXpFromBadges = 0;
 
   for (const badge of BADGES) {
-    if (userProfile.unlockedBadgeIds.includes(badge.id)) {
+    if (userProfile?.unlockedBadgeIds?.includes(badge.id)) {
       continue;
     }
 
@@ -443,12 +443,12 @@ export function checkAndAwardBadges(
     }
   }
 
-  const updatedProfile: UserProfile = {
+  const updatedProfile: any = {
     ...userProfile,
     xp: userProfile.xp + newXpFromBadges,
     unlockedBadgeIds: [
-      ...userProfile.unlockedBadgeIds,
-      ...newBadges.map((b) => b.id),
+      ...userProfile?.unlockedBadgeIds,
+      ...newBadges?.map((b) => b.id),
     ],
   };
 

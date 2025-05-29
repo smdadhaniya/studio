@@ -18,15 +18,16 @@ import {
 } from "@/lib/constants";
 import axios from "axios";
 import { nullable } from "zod";
+import axiosInstance from "@/lib/axios";
 
 interface AuthContextType {
   currentUser: any;
-  setCurrentUser: React.Dispatch<React.SetStateAction<FirebaseUser | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isAuthPage: boolean;
   setIsAuthPage: React.Dispatch<React.SetStateAction<boolean>>;
   logout: () => void;
+  loadedProfile: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthPage, setIsAuthPage] = useState(false);
   const pathname = usePathname();
+  const loadedProfile = loadState<any>(USER_PROFILE_KEY, {});
 
   useEffect(() => {
     const isAuth = pathname === "/login" || pathname === "/signup";
@@ -43,14 +45,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname]);
 
   useEffect(() => {
-    // Load tokens and user profile from localStorage
-    const token = loadState(ACCESS_TOKEN_KEY, "");
-    const userProfile = loadState(USER_PROFILE_KEY, "");
-    if (token && userProfile) {
-      setCurrentUser(userProfile);
+    const fetchloginUser = async () => {
+      const UserInfoResponse = await axiosInstance.get("api/fetch-user", {
+        params: { userId: loadedProfile?.uid },
+      });
+      setCurrentUser(UserInfoResponse.data.userInfo);
+      console.log("UserInfoResponse", UserInfoResponse);
+    };
+    if (loadedProfile?.uid) {
+      fetchloginUser();
     }
-    setLoading(false);
-  }, []);
+  }, [loadedProfile?.uid]);
 
   const logout = () => {
     setCurrentUser(null);
@@ -63,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         currentUser,
-        setCurrentUser,
+        loadedProfile,
         loading,
         setLoading,
         isAuthPage,
