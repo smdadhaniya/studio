@@ -1,7 +1,6 @@
+import type { LucideIcon } from "lucide-react";
 
-import type { LucideIcon } from 'lucide-react';
-
-export type HabitTrackingFormat = 'yes/no' | 'measurable';
+export type HabitTrackingFormat = "yes/no" | "measurable";
 
 export interface Habit {
   id: string;
@@ -41,7 +40,7 @@ export interface Badge {
   name: string;
   description: string;
   icon: string; // Lucide Icon name (string)
-  milestoneType: 'streak' | 'totalCompletions' | 'level';
+  milestoneType: "streak" | "totalCompletions" | "level";
   milestoneValue: number;
   xpReward?: number;
 }
@@ -63,4 +62,4 @@ export interface IconListItem {
 }
 
 // For Firebase User object
-export type FirebaseUser = import('firebase/auth').User;
+export type FirebaseUser = import("firebase/auth").User;

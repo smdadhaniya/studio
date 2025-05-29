@@ -22,7 +22,11 @@ import { Flame } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import { saveState } from "@/lib/localStorageUtils";
 import { toast } from "@/hooks/use-toast";
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_PROFILE_KEY } from "@/lib/constants";
+import {
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  USER_PROFILE_KEY,
+} from "@/lib/constants";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -33,7 +37,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setCurrentUser, loading, setLoading } = useAuth(); // Use loading from auth context
+  const { setLoading } = useAuth(); // Use loading from auth context
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -66,9 +70,6 @@ export default function LoginPage() {
       saveState(ACCESS_TOKEN_KEY, accessToken);
       saveState(REFRESH_TOKEN_KEY, refreshToken);
 
-      // Set user in global context
-      setCurrentUser(userInfo);
-
       // Show success toast
       toast({
         title: "Login Successful",
@@ -98,7 +99,7 @@ export default function LoginPage() {
     }
   };
 
-  const isLoading = isSubmitting || loading;
+  const isLoading = isSubmitting;
 
   return (
     <Card className="w-full max-w-md shadow-xl">

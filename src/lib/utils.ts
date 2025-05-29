@@ -35,3 +35,20 @@ export const formatAmountBasedOnCurrency = (
 
   return formattedAmount;
 };
+function toCamelCase(str: string): string {
+  return str.replace(/[_-](\w)/g, (_, c) => c.toUpperCase());
+}
+
+export function convertKeysToCamelCase<T>(input: T): T {
+  if (Array.isArray(input)) {
+    return input.map((item) => convertKeysToCamelCase(item)) as T;
+  } else if (input !== null && typeof input === "object") {
+    const result: any = {};
+    for (const [key, value] of Object.entries(input)) {
+      const newKey = toCamelCase(key);
+      result[newKey] = convertKeysToCamelCase(value);
+    }
+    return result;
+  }
+  return input;
+}
