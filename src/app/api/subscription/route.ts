@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   collection,
-  getDocs,
-  query,
-  where,
-  updateDoc,
+  getDoc,
   doc,
   setDoc,
+  updateDoc,
   Timestamp,
 } from "firebase/firestore";
 import { HabitForgeFirestore } from "../../../../firebase/firebase.config";
@@ -29,7 +27,6 @@ export async function POST(req: NextRequest) {
       } = {},
     } = body;
 
-    // 🔒 Validation
     if (
       !user_id ||
       !currency ||
@@ -59,29 +56,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🔍 Get the user document
-    const usersRef = collection(HabitForgeFirestore, "users");
-    const q = query(usersRef, where("uid", "==", user_id));
-    const querySnapshot = await getDocs(q);
+    // 🔍 Get the user document directly by ID
+    const userDocRef = doc(HabitForgeFirestore, "users", user_id);
+    const userDocSnap = await getDoc(userDocRef);
 
-    if (querySnapshot.empty) {
+    if (!userDocSnap.exists()) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const userDoc = querySnapshot.docs[0];
-    const userId = userDoc.id;
-
+    // 📦 Create subscription reference
     const subscriptionRef = doc(
       HabitForgeFirestore,
       "subscriptions",
       subscription_id
     );
 
+    // 🧾 Create new subscription history document
     const historyDocRef = doc(
-      collection(HabitForgeFirestore, `users/${userId}/subscription_history`)
+      collection(HabitForgeFirestore, `users/${user_id}/subscription_history`)
     );
 
-    // 📝 Create subscription history entry
     await setDoc(historyDocRef, {
       currency,
       payment_method,
@@ -91,14 +85,14 @@ export async function POST(req: NextRequest) {
       purchase_time: new Date().toLocaleTimeString(),
       purchase_date: Timestamp.now(),
       expire_date: Timestamp.fromDate(
-        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // +30 days
       ),
       is_expire: false,
       subscription_ref: subscriptionRef,
       created_at: Timestamp.now(),
     });
 
-    const userDocRef = doc(HabitForgeFirestore, "users", userId);
+    // 🔄 Update user with current subscription info
     await updateDoc(userDocRef, {
       subscription: historyDocRef,
       updated_at: new Date().toISOString(),

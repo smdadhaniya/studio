@@ -13,7 +13,6 @@ import { HabitForgeFirestore } from "../../../../../firebase/firebase.config";
 
 export async function GET(req: NextRequest) {
   try {
-    // Step 1: Get all user documents
     const usersSnapshot = await getDocs(
       collection(HabitForgeFirestore, "users")
     );
@@ -25,7 +24,6 @@ export async function GET(req: NextRequest) {
         const subscriptionRef = user.subscription || null;
         delete user.subscription;
 
-        // 🔍 Step 2: Fetch latest subscription_history
         let latestHistory: any = null;
         const historyQuery = query(
           collection(
@@ -44,7 +42,6 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    // Step 3: Fetch all subscription documents
     const subscriptionDocs = await Promise.all(
       usersWithRefs.map(async ({ subscriptionRef }) => {
         if (!subscriptionRef) return null;
@@ -55,7 +52,6 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    // Step 4: Fetch all plan documents
     const planDocs = await Promise.all(
       subscriptionDocs.map(async (subDoc: any) => {
         if (!subDoc || !subDoc.data.subscription_ref) return null;
@@ -66,7 +62,6 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    // Step 5: Combine everything
     const usersData = usersWithRefs.map(
       ({ userId, user, latestHistory }, idx) => {
         const subscriptionData = subscriptionDocs[idx];

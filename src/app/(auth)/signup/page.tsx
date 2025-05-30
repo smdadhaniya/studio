@@ -22,13 +22,16 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ACCESS_TOKEN_KEY,
+  HABITS_KEY,
+  PROGRESS_KEY,
   REFRESH_TOKEN_KEY,
   USER_PROFILE_KEY,
 } from "../../../lib/constants";
 import { Flame } from "lucide-react";
 import axiosInstance from "@/lib/axios";
-import { saveState } from "@/lib/localStorageUtils";
+import { loadState, saveState } from "@/lib/localStorageUtils";
 import { toast } from "@/hooks/use-toast";
+import { Habit, HabitProgress } from "@/lib/types";
 
 const signupSchema = z.object({
   firstName: z
@@ -55,6 +58,29 @@ export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { setCurrentUser } = useAuth();
+  const allHabits = loadState<Habit[]>(HABITS_KEY, []);
+  const allProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
+  const filteredHabits = allHabits.map(
+    ({
+      id,
+      title,
+      description,
+      icon,
+      trackingFormat,
+      measurableUnit,
+      targetCount,
+      createdAt,
+    }) => ({
+      id,
+      title,
+      description,
+      icon,
+      tracking_format: trackingFormat,
+      measurable_unit: measurableUnit,
+      target_count: targetCount,
+      created_at: createdAt,
+    })
+  );
 
   const {
     register,
@@ -77,22 +103,24 @@ export default function SignupPage() {
       email: data.email,
       password: data.password,
       name: fullName,
+      allHabits: filteredHabits,
+      allProgress,
     };
     try {
       const response = await axiosInstance.post("/api/auth/register", payload);
-      const { userInfo, accessToken, refreshToken } = response.data.data;
+      const { userProfile, accessToken, refreshToken } = response.data;
 
-      saveState(USER_PROFILE_KEY, userInfo);
+      saveState(USER_PROFILE_KEY, userProfile);
       saveState(ACCESS_TOKEN_KEY, accessToken);
       saveState(REFRESH_TOKEN_KEY, refreshToken);
 
-      setCurrentUser(userInfo);
+      setCurrentUser(userProfile);
       toast({
         title: "Signup Successful",
         description: `Welcome, ${fullName}!`,
       });
 
-      router.push("/");
+      router.push("/habits");
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || error.message || "Signup failed";

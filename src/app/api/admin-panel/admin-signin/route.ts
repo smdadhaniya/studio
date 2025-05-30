@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    let signinUser;
+    let signinUser: any;
     try {
       const { user } = await signInWithEmailAndPassword(
         HabitForgeAuth,
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
-    const userDocRef = doc(HabitForgeFirestore, "users", signinUser.uid);
+    const userDocRef = doc(HabitForgeFirestore, "users", signinUser?.uid);
     const userSnapshot = await getDoc(userDocRef);
     if (!userSnapshot.exists()) {
       return new Response(
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       );
     }
     const userData = userSnapshot.data();
-    if (userData?.role !== "admin") {
+    if (userData?.role?.role_type !== "admin") {
       return new Response(
         JSON.stringify({ message: "Access denied. Admins only." }),
         { status: 403 }
@@ -53,10 +53,13 @@ export async function POST(req: Request) {
       JSON.stringify({
         success: true,
         message: "Admin signed in successfully.",
-        data: {
-          accessToken,
-          refreshToken,
+        admin: {
+          id: userData?.uid,
+          name: userData.name,
+          email: userData.email,
         },
+        accessToken,
+        refreshToken,
       }),
       { status: 200 }
     );

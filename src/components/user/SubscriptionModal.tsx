@@ -44,11 +44,13 @@ export interface SubscriptionPlan {
 interface SubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  setIsSubscriptionModalOpen: any;
 }
 
 export function SubscriptionModal({
   open,
   onOpenChange,
+  setIsSubscriptionModalOpen,
 }: SubscriptionModalProps) {
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -116,10 +118,11 @@ export function SubscriptionModal({
   }, [open]);
 
   const handleSubscribeClick = async (plan: SubscriptionPlan) => {
+    setIsSubscriptionModalOpen(false);
     setSubscribePlan(plan.id);
-    if (!currentUser?.uid) {
+    if (!currentUser) {
       onOpenChange(false);
-      router.replace("/login");
+      router.replace("/signup");
       return;
     }
 
@@ -140,8 +143,8 @@ export function SubscriptionModal({
       const res = await axiosInstance.post("/api/create-razorpay-order", {
         amount: amountInINR, // paise
         currency: "INR",
-        name: currentUser.name,
-        email: currentUser.email,
+        name: currentUser?.name,
+        email: currentUser?.email,
         subscriptionId: plan.id,
       });
       const order = res.data;
@@ -155,8 +158,8 @@ export function SubscriptionModal({
         description: plan.description,
         order_id: order.id,
         prefill: {
-          name: currentUser.userName,
-          email: currentUser.email,
+          name: currentUser?.userName,
+          email: currentUser?.email,
         },
         handler: async (response: any) => {
           try {
@@ -165,7 +168,7 @@ export function SubscriptionModal({
                 currency: "INR",
                 payment_method: "RAZORPAY",
                 amount: (order.amount / 100).toFixed(2),
-                user_id: currentUser.uid,
+                user_id: currentUser?.id,
                 subscription_id: plan.id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
@@ -177,6 +180,7 @@ export function SubscriptionModal({
               title: "Success",
               description: "Subscription activated!",
             });
+
             onOpenChange(false);
           } catch (err: any) {
             toast({

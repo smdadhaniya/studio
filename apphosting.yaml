@@ -30,7 +30,7 @@ env:
 
   # Payment Integration
   - variable: NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID
-    value: rzp_test_6FxnADkX05Llzt
+    value: rzp_live_6cTgG9mkiez9yr
 
   - variable: NEXT_PUBLIC_RAZORPAY_TEST_KEY_SECRET
-    value: t3bR9BwGwotICu78YlKlWK8B
+    value: m1mTwEOlXoiMHXVXtWOH32hv

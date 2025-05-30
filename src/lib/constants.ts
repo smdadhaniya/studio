@@ -552,6 +552,15 @@ export const BADGES: Badge[] = [
 
 export const MAX_PROGRESS_DAYS = 30;
 
-export const USER_PROFILE_KEY = "habitForge_userProfile";
 export const ACCESS_TOKEN_KEY = "habitForge_accessToken";
 export const REFRESH_TOKEN_KEY = "habitForge_refreshToken";
+
+export enum ROLE {
+  role_id,
+  role_type,
+}
+
+export const HABITS_KEY = "habitForge_habits";
+export const PROGRESS_KEY = "habitForge_progress";
+export const USER_PROFILE_KEY = "habitForge_userProfile";
+export const BOOKMARKED_VIEW_DATE_KEY = "habitForge_bookmarkedViewDate";

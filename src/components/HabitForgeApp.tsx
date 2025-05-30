@@ -16,7 +16,13 @@ import {
   checkAndAwardBadges,
   getInitialUserProfile,
 } from "@/lib/habitUtils";
-import { DEFAULT_USER_NAME } from "@/lib/constants";
+import {
+  BOOKMARKED_VIEW_DATE_KEY,
+  DEFAULT_USER_NAME,
+  HABITS_KEY,
+  PROGRESS_KEY,
+  USER_PROFILE_KEY,
+} from "@/lib/constants";
 import { CreateHabitModal } from "@/components/habit/CreateHabitModal";
 import { SetupModal } from "@/components/user/SetupModal";
 import { HabitTable } from "@/components/habit/HabitTable";
@@ -63,11 +69,6 @@ import {
 import axiosInstance from "@/lib/axios";
 import { convertKeysToCamelCase } from "@/lib/utils";
 
-const HABITS_KEY = "habitForge_habits";
-const PROGRESS_KEY = "habitForge_progress";
-const USER_PROFILE_KEY = "habitForge_userProfile";
-const BOOKMARKED_VIEW_DATE_KEY = "habitForge_bookmarkedViewDate";
-
 export default function HabitForgeApp() {
   const { currentUser, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -105,14 +106,14 @@ export default function HabitForgeApp() {
   const { showNotification } = useNotifications();
   const loadedHabitsInitial = loadState<Habit[]>(HABITS_KEY, []);
   const loadedProgress = loadState<HabitProgress>(PROGRESS_KEY, {});
-  const loadedProfile = loadState<any>(USER_PROFILE_KEY, {});
+  const profile = loadState<any>(USER_PROFILE_KEY, {});
   const bookmarkedDateString = loadState<string | null>(
     BOOKMARKED_VIEW_DATE_KEY,
     ""
   );
   const getHabits = async () => {
     const res = await axiosInstance.get("/api/habit/get-habits", {
-      params: { userId: currentUser?.uid },
+      params: { userId: currentUser?.id },
     });
     const camelCaseResult = convertKeysToCamelCase(res.data.habits);
     setHabits(camelCaseResult);
@@ -120,7 +121,7 @@ export default function HabitForgeApp() {
 
   const getProgress = async () => {
     const res = await axiosInstance.get("/api/progress/get-progress", {
-      params: { userId: currentUser?.uid },
+      params: { userId: currentUser?.id },
     });
     setAllProgress(res?.data?.allProgress);
   };
@@ -137,7 +138,7 @@ export default function HabitForgeApp() {
     } else {
       setHabits(loadedHabitsInitial);
       setAllProgress(loadedProgress);
-      setUserProfile(loadedProfile);
+      setUserProfile(profile);
       saveState(HABITS_KEY, habits);
       saveState(PROGRESS_KEY, allProgress);
       saveState(USER_PROFILE_KEY, userProfile);
@@ -274,7 +275,7 @@ export default function HabitForgeApp() {
           if (currentUser?.subscription_plan?.is_active) {
             await axiosInstance.post("/api/habit/add-habit", {
               habits: habitsToAdd,
-              userId: currentUser.uid,
+              userId: currentUser?.id,
             });
           }
           setHabits((prev) => [...prev, ...habitsToAdd]);
@@ -290,7 +291,6 @@ export default function HabitForgeApp() {
           });
         }
       } else {
-        // Handling single HabitFormData
         const newHabit: Habit = {
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
@@ -310,7 +310,7 @@ export default function HabitForgeApp() {
         if (currentUser?.subscription_plan?.is_active) {
           await axiosInstance.post("/api/habit/add-habit", {
             habits: [newHabit],
-            userId: currentUser.uid,
+            userId: currentUser?.id,
           });
         }
         setHabits((prev) => [...prev, newHabit]);
@@ -345,7 +345,7 @@ export default function HabitForgeApp() {
 
       if (currentUser?.subscription_plan?.is_active) {
         await axiosInstance.put("/api/habit/edit-habit", {
-          userId: currentUser.uid,
+          userId: currentUser?.id,
           habitId,
           data: updatedData,
         });
@@ -405,7 +405,7 @@ export default function HabitForgeApp() {
         if (currentUser?.subscription_plan?.is_active) {
           await axiosInstance.delete("/api/habit/delete-habit", {
             params: {
-              userId: currentUser.uid,
+              userId: currentUser?.id,
               habitId,
             },
           });
@@ -664,7 +664,7 @@ export default function HabitForgeApp() {
 
     if (currentUser?.subscription_plan?.is_active) {
       const res = await axiosInstance.post("/api/progress/update-progress", {
-        userId: currentUser.id,
+        userId: currentUser?.id,
         habitId: habitId,
         progress: {
           date: date,
@@ -755,7 +755,7 @@ export default function HabitForgeApp() {
 
     if (currentUser?.subscription_plan?.is_active) {
       const res = await axiosInstance.post("/api/progress/update-progress", {
-        userId: currentUser.id,
+        userId: currentUser?.id,
         habitId,
         progress: {
           date,
@@ -824,7 +824,7 @@ export default function HabitForgeApp() {
   }
 
   if (
-    !userProfile?.uid &&
+    !userProfile?.id &&
     !userProfile?.hasCompletedSetup &&
     !isSetupModalOpen &&
     !isEditProfileModalOpenFromApp

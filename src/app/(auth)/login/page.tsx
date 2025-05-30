@@ -77,7 +77,7 @@ export default function LoginPage() {
       });
 
       // Navigate to home page
-      router.push("/");
+      router.push("/habits");
     } catch (error: any) {
       let errorMsg = "Login failed. Please try again.";
 

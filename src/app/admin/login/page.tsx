@@ -50,7 +50,8 @@ export default function LoginPage() {
         throw new Error(response.data?.message || "Authentication failed.");
       }
 
-      const { accessToken, refreshToken } = response.data.data;
+      const { accessToken, admin } = response.data;
+      saveState("admin_info", admin);
       saveState("admin_accessToken", accessToken);
       toast({
         title: "Login Successful",
@@ -116,17 +117,6 @@ export default function LoginPage() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="text-center text-sm">
-        <p className="text-muted-foreground w-full">
-          Don't have an account?{" "}
-          <Link
-            href="/signup"
-            className="font-medium text-primary hover:underline"
-          >
-            Sign Up
-          </Link>
-        </p>
-      </CardFooter>
     </Card>
   );
 }

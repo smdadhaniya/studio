@@ -1,5 +1,4 @@
-// src/app/admin/page.tsx
-"use client"; // For using alerts and potential future client-side interactions
+"use client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,49 +35,7 @@ import { useEffect, useState } from "react";
 import axiosInstance from "@/lib/axios";
 import { loadState } from "@/lib/localStorageUtils";
 import { useRouter } from "next/navigation";
-
-const mockSubscribers = [
-  {
-    id: "usr_1a2b3c",
-    name: "Alice Wonderland",
-    email: "alice@example.com",
-    plan: "Yearly Premium",
-    startDate: "2023-01-15",
-    status: "Active",
-  },
-  {
-    id: "usr_4d5e6f",
-    name: "Bob The Builder",
-    email: "bob@example.com",
-    plan: "Monthly Premium",
-    startDate: "2023-06-01",
-    status: "Active",
-  },
-  {
-    id: "usr_7g8h9i",
-    name: "Charlie Brown",
-    email: "charlie@example.com",
-    plan: "Monthly Premium",
-    startDate: "2024-02-10",
-    status: "Cancelled",
-  },
-  {
-    id: "usr_j0k1l2",
-    name: "Diana Prince",
-    email: "diana@example.com",
-    plan: "Yearly Premium",
-    startDate: "2023-11-20",
-    status: "Active",
-  },
-  {
-    id: "usr_m3n4o5",
-    name: "Edward Scissorhands",
-    email: "edward@example.com",
-    plan: "Free Tier",
-    startDate: "2024-03-01",
-    status: "Active",
-  },
-];
+import { IAdminInfo } from "@/lib/types";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -277,7 +234,7 @@ export default function AdminPage() {
                 </TableBody>
               </Table>
             </div>
-            {mockSubscribers.length === 0 && (
+            {subscribers.length === 0 && (
               <p className="text-center text-muted-foreground py-8">
                 No subscribers to display.
               </p>

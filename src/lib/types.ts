@@ -31,8 +31,6 @@ export interface UserProfile {
   userName: string;
   hasCompletedSetup: boolean;
   isSubscribed?: boolean;
-  // Optional: Store Firebase UID if you plan to link data later
-  // uid?: string;
 }
 
 export interface Badge {
@@ -63,3 +61,8 @@ export interface IconListItem {
 
 // For Firebase User object
 export type FirebaseUser = import("firebase/auth").User;
+
+export interface IAdminInfo {
+  name: string;
+  email: string;
+}

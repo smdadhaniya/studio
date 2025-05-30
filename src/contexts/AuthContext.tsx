@@ -27,7 +27,7 @@ interface AuthContextType {
   isAuthPage: boolean;
   setIsAuthPage: React.Dispatch<React.SetStateAction<boolean>>;
   logout: () => void;
-  loadedProfile: any;
+  profile: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthPage, setIsAuthPage] = useState(false);
   const pathname = usePathname();
-  let loadedProfile = loadState<any>(USER_PROFILE_KEY, {});
+  let profile = loadState<any>(USER_PROFILE_KEY, {});
 
   useEffect(() => {
     const isAuth = pathname === "/login" || pathname === "/signup";
@@ -46,19 +46,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname]);
 
   useEffect(() => {
-    if (!loadedProfile?.hasCompletedSetup && !loadedProfile?.uid) {
-      router.replace("/landing");
+    if (!profile?.hasCompletedSetup && !profile?.id) {
+      router.replace("/");
     }
     const fetchloginUser = async () => {
       const UserInfoResponse = await axiosInstance.get("api/fetch-user", {
-        params: { userId: loadedProfile?.uid },
+        params: { userId: profile?.id },
       });
+      console.log(UserInfoResponse.data.userInfo);
       setCurrentUser(UserInfoResponse.data.userInfo);
     };
-    if (loadedProfile?.uid) {
+    if (profile?.id) {
       fetchloginUser();
     }
-  }, [loadedProfile?.uid]);
+  }, [profile?.id]);
 
   const logout = () => {
     setCurrentUser(null);
@@ -72,7 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         currentUser,
         setCurrentUser,
-        loadedProfile,
+        profile,
         loading,
         setLoading,
         isAuthPage,

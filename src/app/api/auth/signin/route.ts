@@ -1,7 +1,6 @@
 import { Firebase } from "@/lib/firebase-error-handler";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { getDoc, doc } from "firebase/firestore";
-import { NextApiRequest, NextApiResponse } from "next";
 import {
   HabitForgeAuth,
   HabitForgeFirestore,
@@ -20,7 +19,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    let signinUser;
+    let signinUser: any;
     try {
       const { user } = await signInWithEmailAndPassword(
         HabitForgeAuth,
@@ -34,7 +33,7 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-    const userDocRef = doc(HabitForgeFirestore, "users", signinUser.uid);
+    const userDocRef = doc(HabitForgeFirestore, "users", signinUser?.uid);
     const userSnapshot = await getDoc(userDocRef);
 
     const userData = userSnapshot.data();
