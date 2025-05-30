@@ -16,12 +16,12 @@ import {
   REFRESH_TOKEN_KEY,
   USER_PROFILE_KEY,
 } from "@/lib/constants";
-import axios from "axios";
-import { nullable } from "zod";
+import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axios";
 
 interface AuthContextType {
   currentUser: any;
+  setCurrentUser: React.Dispatch<React.SetStateAction<any>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isAuthPage: boolean;
@@ -33,11 +33,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthPage, setIsAuthPage] = useState(false);
   const pathname = usePathname();
-  const loadedProfile = loadState<any>(USER_PROFILE_KEY, {});
+  let loadedProfile = loadState<any>(USER_PROFILE_KEY, {});
 
   useEffect(() => {
     const isAuth = pathname === "/login" || pathname === "/signup";
@@ -45,12 +46,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname]);
 
   useEffect(() => {
+    if (!loadedProfile?.hasCompletedSetup && !loadedProfile?.uid) {
+      router.replace("/landing");
+    }
     const fetchloginUser = async () => {
       const UserInfoResponse = await axiosInstance.get("api/fetch-user", {
         params: { userId: loadedProfile?.uid },
       });
       setCurrentUser(UserInfoResponse.data.userInfo);
-      console.log("UserInfoResponse", UserInfoResponse);
     };
     if (loadedProfile?.uid) {
       fetchloginUser();
@@ -68,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         currentUser,
+        setCurrentUser,
         loadedProfile,
         loading,
         setLoading,

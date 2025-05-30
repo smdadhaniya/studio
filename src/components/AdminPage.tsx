@@ -83,13 +83,15 @@ const mockSubscribers = [
 export default function AdminPage() {
   const router = useRouter();
   const [subscribers, setSubscribers] = useState<any>([]);
-  const accessToken = loadState("admin_accessToken", "");
+  const [isUserRemoving, setIsUserRemoving] = useState<boolean>(false);
+
   const fetchUsers = async () => {
     const res = await axiosInstance.get("/api/admin-panel/users");
     setSubscribers(res.data.users);
   };
 
   useEffect(() => {
+    const accessToken = loadState("admin_accessToken", "");
     if (accessToken) {
       fetchUsers();
     } else {
@@ -104,17 +106,37 @@ export default function AdminPage() {
     });
   };
 
-  const handleDeleteUser = (userId: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete user ${userId}? This is a simulated action.`
-      )
-    ) {
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      setIsUserRemoving(true);
+      if (
+        window.confirm(
+          `Are you sure you want to delete user ${userId}? This is a simulated action.`
+        )
+      ) {
+        const response = await axiosInstance.delete(
+          "/api/admin-panel/users/delete-user",
+          {
+            params: { userId },
+          }
+        );
+        if (response) {
+          await fetchUsers();
+          toast({
+            title: "Simulated Action",
+            description: `User ${userId} would be deleted.`,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (err: any) {
       toast({
-        title: "Simulated Action",
-        description: `User ${userId} would be deleted.`,
+        title: "Fail to Remove User",
+        description: err.message,
         variant: "destructive",
       });
+    } finally {
+      setIsUserRemoving(false);
     }
   };
 
@@ -241,7 +263,9 @@ export default function AdminPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDeleteUser(user.id)}
-                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                              className={`${
+                                isUserRemoving ? "cursor-not-allowed" : ""
+                              } text-destructive focus:text-destructive focus:bg-destructive/10`}
                             >
                               <Trash2 className="mr-2 h-4 w-4" /> Delete User
                             </DropdownMenuItem>

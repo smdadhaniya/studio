@@ -447,7 +447,7 @@ export function checkAndAwardBadges(
     ...userProfile,
     xp: userProfile.xp + newXpFromBadges,
     unlockedBadgeIds: [
-      ...userProfile?.unlockedBadgeIds,
+      ...(userProfile?.unlockedBadgeIds || []),
       ...newBadges?.map((b) => b.id),
     ],
   };

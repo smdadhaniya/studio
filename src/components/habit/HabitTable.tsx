@@ -44,10 +44,9 @@ function HabitRow({
   onShowReport,
   isHabitDeleting,
 }: HabitRowProps) {
-  console.log(habit.title, habit.trackingFormat);
   const habitProgressMap = useMemo(() => {
     const map = new Map<string, DailyProgress>();
-    (habitDailyProgress || []).forEach((p) => map.set(p.date, p));
+    (habitDailyProgress || [])?.forEach((p) => map.set(p.date, p));
     return map;
   }, [habitDailyProgress]);
 
@@ -72,7 +71,7 @@ function HabitRow({
       {daysInMonth.map((day) => {
         const dateStr = format(day, "yyyy-MM-dd");
         const dayProgress = habitProgressMap.get(dateStr);
-        const isCompleted = dayProgress?.completed === true; // True if value >= target for measurable, or simply checked for yes/no
+        const isCompleted = dayProgress?.completed === true;
 
         let cellBackground = "bg-background hover:bg-muted/50";
         let contentColor = "text-foreground";
@@ -316,12 +315,11 @@ export function HabitTable({
           </thead>
           <tbody>
             {habits.map((habit) => {
-              console.log(habit);
               return (
                 <HabitRow
                   key={habit.id}
                   habit={habit}
-                  habitDailyProgress={allProgress[habit.id] || []}
+                  habitDailyProgress={allProgress[habit?.id] || []}
                   daysInMonth={daysInMonth}
                   onToggleComplete={onToggleComplete}
                   onOpenInputValueModal={onOpenInputValueModal}

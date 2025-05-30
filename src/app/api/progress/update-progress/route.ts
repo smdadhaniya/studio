@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
         await setDoc(docRef, {
           date,
           value: 1,
+          completed,
           updated_at: Timestamp.now(),
         });
 
@@ -66,7 +67,6 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (typeof value === "number") {
-      // Insert or update numeric value
       const docId = querySnapshot.empty ? undefined : querySnapshot.docs[0].id;
       const docRef = docId
         ? doc(progressCollectionRef, docId)
@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
       await setDoc(docRef, {
         date,
         value,
+        completed,
         updated_at: Timestamp.now(),
       });
 

@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { doc, updateDoc, Timestamp } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  Timestamp,
+  getDoc,
+  collection,
+  getDocs,
+  deleteDoc,
+} from "firebase/firestore";
 import { HabitForgeFirestore } from "../../../../../firebase/firebase.config";
 
 // PUT /api/habit/edit-habit
@@ -8,7 +16,6 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { userId, habitId, data } = body;
 
-    // ✅ Validate input
     if (!userId || !habitId || typeof data !== "object") {
       return NextResponse.json(
         { error: "Missing or invalid userId, habitId, or data" },
@@ -20,6 +27,31 @@ export async function PUT(req: NextRequest) {
       HabitForgeFirestore,
       `users/${userId}/habits/${habitId}`
     );
+
+    const existingHabitSnap = await getDoc(habitDocRef);
+
+    if (!existingHabitSnap.exists()) {
+      return NextResponse.json({ error: "Habit not found" }, { status: 404 });
+    }
+
+    const existingHabit = existingHabitSnap.data();
+    const oldTrackingFormat = existingHabit.tracking_format;
+    const newTrackingFormat = data.tracking_format;
+
+    // If tracking_format changed, delete progress subcollection
+    if (newTrackingFormat && newTrackingFormat !== oldTrackingFormat) {
+      const progressCollectionRef = collection(
+        HabitForgeFirestore,
+        `users/${userId}/habits/${habitId}/progress`
+      );
+
+      const progressDocs = await getDocs(progressCollectionRef);
+
+      const deletePromises = progressDocs.docs.map((docSnap) =>
+        deleteDoc(docSnap.ref)
+      );
+      await Promise.all(deletePromises);
+    }
 
     await updateDoc(habitDocRef, {
       ...data,

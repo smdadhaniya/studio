@@ -118,16 +118,20 @@ export default function HabitForgeApp() {
     setHabits(camelCaseResult);
   };
 
-  // const getProgress = async () => {
-  //   const res = await axiosInstance.get("/api/habit/get-progress", {
-  //     params: { userId: currentUser?.uid },
-  //   });
-  //   setAllProgress(res.data.allProgress);
-  // };
+  const getProgress = async () => {
+    const res = await axiosInstance.get("/api/progress/get-progress", {
+      params: { userId: currentUser?.uid },
+    });
+    setAllProgress(res?.data?.allProgress);
+  };
 
   useEffect(() => {
     if (currentUser?.subscription_plan?.is_active) {
-      getHabits();
+      const fetchingInitialData = async () => {
+        await getHabits();
+        await getProgress();
+      };
+      fetchingInitialData();
       clearState(HABITS_KEY);
       clearState(PROGRESS_KEY);
     } else {
@@ -340,11 +344,12 @@ export default function HabitForgeApp() {
       };
 
       if (currentUser?.subscription_plan?.is_active) {
-        const res = await axiosInstance.put("/api/habit/edit-habit", {
+        await axiosInstance.put("/api/habit/edit-habit", {
           userId: currentUser.uid,
           habitId,
           data: updatedData,
         });
+        await getProgress();
       }
       setHabits((prev) =>
         prev.map((h) =>
@@ -593,22 +598,6 @@ export default function HabitForgeApp() {
       }
     }
 
-    if (currentUser?.subscription_plan?.is_active) {
-      const res = await axiosInstance.post("/api/progress/update-progress", {
-        userId: currentUser.id,
-        habitId: habit.id,
-        progress: {
-          date: date,
-          completed: triggerPositiveReinforcement,
-          value: triggerPositiveReinforcement,
-        },
-      });
-      if (res) {
-        toast({
-          title: res.data.message,
-        });
-      }
-    }
     setUserProfile(userProfileAfterToggle);
     saveState(USER_PROFILE_KEY, userProfileAfterToggle);
   };
@@ -741,20 +730,17 @@ export default function HabitForgeApp() {
 
     let isNowCompleted: boolean;
     if (entryIndex !== -1) {
-      // Entry exists, toggle its completion
       isNowCompleted = !currentProgressForHabit[entryIndex].completed;
       if (isNowCompleted) {
         updatedHabitSpecificProgressList = currentProgressForHabit.map((p, i) =>
           i === entryIndex ? { ...p, completed: true, value: 1 } : p
         );
       } else {
-        // If toggling off, remove the entry or mark value as undefined
         updatedHabitSpecificProgressList = currentProgressForHabit.filter(
           (_, i) => i !== entryIndex
         );
       }
     } else {
-      // No entry, mark as completed
       isNowCompleted = true;
       updatedHabitSpecificProgressList = [
         ...currentProgressForHabit,
@@ -766,6 +752,24 @@ export default function HabitForgeApp() {
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     newAllProgress[habitId] = updatedHabitSpecificProgressList;
+
+    if (currentUser?.subscription_plan?.is_active) {
+      const res = await axiosInstance.post("/api/progress/update-progress", {
+        userId: currentUser.id,
+        habitId,
+        progress: {
+          date,
+          completed: isNowCompleted,
+          value: isNowCompleted,
+        },
+      });
+      if (res) {
+        toast({
+          title: res.data.message,
+        });
+      }
+    }
+
     setAllProgress(newAllProgress);
 
     const triggerPositiveReinforcement = isNowCompleted;
@@ -841,12 +845,21 @@ export default function HabitForgeApp() {
       <header className="mb-6 p-4 rounded-lg bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-x-4 gap-y-3">
           <div className="flex-1 min-w-0">
-            {userProfile?.userName &&
-              userProfile?.userName !== DEFAULT_USER_NAME && (
+            {userProfile?.userName || userProfile?.name ? (
+              userProfile?.userName === DEFAULT_USER_NAME ? (
                 <h2 className="text-[25px] font-bold mb-1 text-left text-foreground truncate">
-                  {userProfile?.userName}'s Progress
+                  {DEFAULT_USER_NAME}'s Progress
                 </h2>
-              )}
+              ) : (
+                <h2 className="text-[25px] font-bold mb-1 text-left text-foreground truncate">
+                  {userProfile?.userName || userProfile?.name}'s Progress
+                </h2>
+              )
+            ) : (
+              <h2 className="text-[25px] font-bold mb-1 text-left text-foreground truncate capitalize">
+                {currentUser?.name}'s Progress
+              </h2>
+            )}
             <BadgeDisplay
               unlockedBadges={unlockedBadges}
               allPossibleBadges={BADGES}
@@ -954,7 +967,7 @@ export default function HabitForgeApp() {
         onHabitUpdate={handleHabitUpdate}
       />
 
-      <SetupModal
+      {/* <SetupModal
         open={isSetupModalOpen}
         onOpenChange={setIsSetupModalOpen}
         onSubmit={handleInitialSetupSubmit}
@@ -962,7 +975,7 @@ export default function HabitForgeApp() {
           userProfile?.userName || currentUser?.displayName || ""
         }
         isEditing={false} // This is for initial setup
-      />
+      /> */}
       <SetupModal // This instance is specifically for editing name from HabitForgeApp's settings
         open={isEditProfileModalOpenFromApp}
         onOpenChange={setIsEditProfileModalOpenFromApp}

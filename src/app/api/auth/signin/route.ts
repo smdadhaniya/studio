@@ -37,6 +37,9 @@ export async function POST(req: Request) {
     const userDocRef = doc(HabitForgeFirestore, "users", signinUser.uid);
     const userSnapshot = await getDoc(userDocRef);
 
+    const userData = userSnapshot.data();
+    const { subscription, ...userInfo } = userData || {};
+
     const accessToken = await signinUser.getIdToken();
     const refreshToken = signinUser.refreshToken;
 
@@ -45,7 +48,7 @@ export async function POST(req: Request) {
         success: true,
         message: "Successfully signed in",
         data: {
-          userInfo: userSnapshot.data(),
+          userInfo,
           accessToken,
           refreshToken,
         },
